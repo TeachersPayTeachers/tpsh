@@ -41,35 +41,49 @@ function tpsh_lib_pkg_is_managed() {
         esac
         shift
     done
+}
 
-    local pkg_path="${__TPSH__LIB__PKG__PKG_DIR}/$pkg"
+function tpsh_lib_pkg_is_manageable() {
+    local pkg=""
+    local verbose=0
 
-    if [ ! -e "$pkg_path" ] && [ $generic_fallback -eq 1 ]; then
-        pkg_path="${__TPSH__LIB__PKG__PKG_DIR}/generic"
-    fi
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+            -*)
+                ;;
+            *)
+                if [ $# -eq 1 ]; then
+                    pkg="$1"
+                fi
+                ;;
+        esac
+        shift
+    done
 
-    if [ ! -e "$pkg_path" ]; then
+    local pkg_path="$(tpsh_lib_pkg_path $@)"
+    if [ $? -eq 0 ]; then
+        echo $pkg_path
+    else
         if [ $verbose -eq 1 ]; then
-            tpsh_lib_log_err "pkg $pkg management is not supported"
+            tpsh_lib_log_err "management of pkg $pkg is not supported"
         fi
         return 1
     fi
 }
 
-function tpsh_lib_pkg_select_pkgmgr() {
+function tpsh_lib_pkg_path() {
     local generic_fallback=1
     local pkg=""
-    local pkgmgr=""
     local platform="$(tpsh_lib_platform_name)"
     local verbose=0
 
     while [ $# -gt 0 ]; do
         arg="$1"
         case $arg in
-            --pkgmgr)
-                pkgmgr="$2"
-                shift
-                ;;
             --platform)
                 platform="$2"
                 shift
@@ -92,10 +106,114 @@ function tpsh_lib_pkg_select_pkgmgr() {
     done
 
     local pkg_path="${__TPSH__LIB__PKG__PKG_DIR}/$pkg"
+    if [ ! -e "$pkg_path" ] && [ $generic_fallback -eq 1 ]; then
+        pkg_path="${__TPSH__LIB__PKG__PKG_DIR}/generic"
+    fi
+
+    if [ ! -e "$pkg_path" ]; then
+        if [ $verbose -eq 1 ]; then
+            tpsh_lib_log_err "there is no pkg metadata for $pkg at: $pkg_path"
+        fi
+        return 1
+    else
+        echo "$pkg_path"
+    fi
+}
+
+function tpsh_lib_pkg_platform_path() {
+    local platform="$(tpsh_lib_platform_name)"
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --platform)
+                platform="$2"
+                shift
+                ;;
+        esac
+        shift
+    done
+
+    local pkg_path="$(tpsh_lib_pkg_path $@)"
+    local pkg_platform_path="${pkg_path}/platforms/${platform}"
+    if [ -d "$pkg_platform_path" ]; then
+        echo $pkg_platform_path
+    else
+        if [ $verbose -eq ]; then
+            tpsh_lib_log_err "pkg $pkg does not platform metadata at: $pkg_platform_path"
+        fi
+        return 1
+    fi
+}
+
+function tpsh_lib_pkg_select_pkgmgr() {
+    local pkg=""
+    local pkgmgr=""
+    local verbose=0
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --pkgmgr)
+                pkgmgr="$2"
+                shift
+                ;;
+            --verbose)
+                verbose=1
+                ;;
+            -*)
+                ;;
+            *)
+                if [ $# -eq 1 ]; then
+                    pkg="$1"
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    # User may have requested a pkgmgr
+    if [ ! -z "$pkgmgr" ]; then
+        echo $pkgmgr
+        return 0
+    fi
+
+    # Check to see if pkg is already installed
+    #if tpsh_lib_pkg_is_installed $pkg; then
+    #    pkgmgr="$(tpsh_lib_pkg_current_pkgmgr $pkg)"
+    #fi
+}
+
+function tpsh_lib_pkg_supported_pkgmgrs() {
+    tpsh_lib_pkg_is_manageable "$@" \
+        || return $?
+
+    local verbose=0
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+        esac
+        shift
+    done
+
+    local pkg_platform_path="$(tpsh_lib_pkg_platform_path $@)" || return $?
+    local supported_pkgmgrs_txt="${pkg_platform_path}/supported-pkgmgrs.txt"
+    if [ -e "$supported_pkgmgrs_txt" ]; then
+        cat $supported_pkgmgrs_txt
+    else
+        if [ $verbose -eq 1 ]; then
+            tpsh_lib_log_err "pkg $pkg does not define any supported pkgmgrs in: $supported_pkgmgrs_txt"
+        fi
+        return 1
+    fi
 }
 
 function tpsh_lib_pkg_supports_platform() {
-    tpsh_lib_pkg_is_managed "$@" \
+    tpsh_lib_pkg_is_manageable "$@" \
         || return $?
 
     local generic_fallback=1
@@ -127,10 +245,7 @@ function tpsh_lib_pkg_supports_platform() {
         shift
     done
 
-    local pkg_path="${__TPSH__LIB__PKG__PKG_DIR}/$pkg"
-    if [ ! -e "$pkg_path" ] && [ $generic_fallback -eq 1 ]; then
-        pkg_path="${__TPSH__LIB__PKG__PKG_DIR}/generic"
-    fi
+    local pkg_path="$(tpsh_lib_pkg_path $@)" || return $?
 
     local supported_platform_txt="${pkg_path}/supported-platforms.txt"
     if [ ! -e "$supported_platform_txt" ]; then
