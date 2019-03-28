@@ -1,0 +1,159 @@
+#!/usr/bin/env bash
+
+{
+    #####################################################################
+	##### GLOBAL VARIABLES                                          #####
+    #####################################################################
+
+    CLEANUP_FILES=""
+    EXT="tar.gz"
+    DOWNLOAD_DIR="${DOWNLOAD_DIR:-}"
+    DOWNLOAD_FILE="tptsh.$EXT"
+    DOWNLOAD_PATH=""
+    KEEP_DOWNLOAD_DIR=0
+    URL_BASE="https://github.com/TeachersPayTeachers/tpsh/tarball"
+    URL=""
+    INSTALL_DIR="${INSTALL_DIR:-$HOME/.tpt}"
+    INSTALL_FILE="install"
+    INSTALL_PATH=""
+    RELEASE="${RELASE:-master}"
+
+    #####################################################################
+	##### FUNCTIONS                                                 #####
+    #####################################################################
+
+    function deps_check() {
+        local missing_deps=""
+        for dep in curl tar; do
+            if ! which $dep > /dev/null; then
+                missing_deps="$missing_deps $dep"
+            fi
+        done
+
+        if [ -z "$missing_deps" ]; then
+            return 0
+        else
+            echo "$missing_deps"
+            return 1
+        fi
+    }
+
+    function cleanup() {
+        if [ ! -z "$CLEANUP_FILES" ]; then
+            log "Cleaning up: $CLEANUP_FILES"
+            rm -rf $CLEANUP_FILES
+        fi
+    }
+
+    function download() {
+        local url="$1"
+        local download_path="$2"
+        curl -L $url -o $download_path
+        if [ $? -ne 0 ] || [ ! -e $download_path ]; then
+            return 1
+        else
+            return 0
+        fi
+    }
+
+    function install() {
+        $INSTALL_PATH $@
+        return $?
+    }
+
+    function log() {
+        echo "[$0] $@"
+    }
+
+    function log_err() {
+        >&2 log "$@"
+    }
+
+    function log_exit() {
+        log_err "$@"
+        exit 1
+    }
+
+    function unarchive() {
+        local archive="$1"
+        local unarchive_dest="$2"
+        tar -zvxf $archive -C $unarchive_dest --strip-components=1
+        return $?
+    }
+
+    #####################################################################
+	##### PARSE CLI OPTIONS                                         #####
+    #####################################################################
+
+    while [ $# -gt 0 ]; do
+        arg=$1
+        case $arg in
+            --download-dir)
+              DOWNLOAD_DIR="$2"
+              shift
+              ;;
+            --install-dir)
+              INSTALL_DIR="$2"
+              shift
+              ;;
+            --keep-download-dir)
+              KEEP_DOWNLOAD_DIR=1
+              ;;
+			--release)
+              RELEASE="$2"
+			  shift
+              ;; 
+        esac
+        shift
+    done
+
+    #####################################################################
+	##### SETUP SIGNAL HANDLER                                      #####
+    #####################################################################
+
+    trap cleanup EXIT
+
+    #####################################################################
+	##### SET DEFAULTS                                              #####
+    #####################################################################
+
+    if [ -z $DOWNLOAD_DIR ]; then
+      DOWNLOAD_DIR=$(mktemp -d)
+      if [ $KEEP_DOWNLOAD_DIR -eq 0 ]; then
+		  CLEANUP_FILES="$CLEANUP_FILES $DOWNLOAD_DIR"
+      fi
+    fi
+
+    DOWNLOAD_PATH="$DOWNLOAD_DIR/$DOWNLOAD_FILE"
+    INSTALL_PATH="$INSTALL_DIR/$INSTALL_FILE"
+    URL="$URL_BASE/$RELEASE"
+
+    #####################################################################
+	##### MAIN PROGRAM                                              #####
+    #####################################################################
+
+    if [ -e "$DOWNLOAD_PATH" ]; then
+        log_exit "Download path $DOWNLOAD_PATH already exists"
+    fi
+
+    if [ -e "$INSTALL_DIR" ]; then
+        log_exit "Install path $INSTALL_DIR already exists"
+    else
+        mkdir -p $INSTALL_DIR
+    fi
+
+    missing_deps=$(deps_check)
+    if [ ! -z "$missing_deps" ]; then
+		log_exit "Missing deps: $missing_deps"
+    fi
+
+    download $URL $DOWNLOAD_PATH \
+        || log_exit "Failed to download $URL to $DOWNLOAD_PATH"
+    log "Successfully downloaded $URL to $DOWNLOAD_PATH"
+
+    unarchive $DOWNLOAD_PATH $INSTALL_DIR \
+        || log_exit "Failed to unarchive $DOWNLOAD_PATH to $INSTALL_DIR"
+
+    install $INSTALL_PATH \
+		|| log_exit "Failed to run installer"
+}
