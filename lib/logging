@@ -8,11 +8,11 @@ else
 fi
 
 function tpsh_lib_log() {
-    printf "[tpsh] $@"
+    printf "[tpsh] $@\n"
 }
 
 function tpsh_lib_log_err() {
-    >&2 printf "\033[1;91m$@\033[0m\n"
+    >&2 printf "\033[1;91m[tpsh] $@\033[0m\n"
 }
 
 function tpsh_lib_log_err_exit() {

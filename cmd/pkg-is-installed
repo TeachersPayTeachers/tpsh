@@ -36,10 +36,8 @@ function tpsh_cmd_pkg_is_installed() {
         shift
     done
 
-    echo "checking to see if pkg $pkg is installed"
-    tpsh_lib_pkgmgr_is_installed $args
+    tpsh_lib_pkgmgr_is_installed "$args"
     result=$?
-    echo "got result $result"
 
     if [ $result -eq 0 ]; then
         tpsh_lib_log "pkg $pkg is installed"
@@ -52,4 +50,4 @@ function tpsh_cmd_pkg_is_installed() {
 ##### MAIN PROGRAM                                              #####
 #####################################################################
 
-tpsh_cmd_pkg_is_installed "$@"
+tpsh_cmd_pkg_is_installed $@

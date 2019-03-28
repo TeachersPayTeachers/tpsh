@@ -27,6 +27,32 @@ done
 ##### FUNCTIONS                                                 #####
 #####################################################################
 
+function tpsh_lib_pkgmgr_add() {
+    local args="$@"
+    local pkg=""
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            -*)
+                ;;
+            *)
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$arg"
+                fi
+        esac
+        shift
+    done
+
+    tpsh_lib_pkgmgr_is_supported $args || return $?
+
+    local pkgmgr=""
+    pkgmgr="$(tpsh_lib_pkgmgr_select_preferred $args)" || return $?
+
+    local pkgmgrd_cmd="tpsh_lib_pkgmgrd_${pkgmgr}_add"
+    $pkgmgrd_cmd $args || return $?
+}
+
 function tpsh_lib_pkgmgr_current() {
     local args="$@"
     local pkg=""
@@ -49,7 +75,9 @@ function tpsh_lib_pkgmgr_current() {
         shift
     done
 
-    local supported_pkgmgrs="$(tpsh_lib_pkg_supported_pkgmgrs $args)"
+    local supported_pkgmgrs=""
+    supported_pkgmgrs="$(tpsh_lib_pkg_supported_pkgmgrs $args)" || return $?
+
     for pkgmgr in $supported_pkgmgrs; do
         if tpsh_lib_pkgmgr_is_installed --pkgmgr $pkgmgr $args; then
             echo $pkgmgr
@@ -67,19 +95,10 @@ function tpsh_lib_pkgmgr_current() {
 function tpsh_lib_pkgmgr_is_installed() {
     local args="$@"
     local pkg=""
-    local pkgmgr=""
-    local verbose=0
 
     while [ $# -gt 0 ]; do
         arg="$1"
         case $arg in
-            --pkgmgr)
-                pkgmgr="$2"
-                shift
-                ;;
-            --verbose)
-                verbose=1
-                ;;
             -*)
                 ;;
             *)
@@ -90,11 +109,13 @@ function tpsh_lib_pkgmgr_is_installed() {
         shift
     done
 
-    pkgmgr="$(tpsh_lib_pkgmgr_select_preferred $args)"
-    >&2 echo PREFERRED PKGMGR $pkgmgr
-    tpsh_lib_pkgmgr_is_supported "$args" || return $?
+    tpsh_lib_pkgmgr_is_supported $args || return $?
+
+    local pkgmgr=""
+    pkgmgr="$(tpsh_lib_pkgmgr_select_preferred $args)" || return $?
+
     local pkgmgrd_cmd="tpsh_lib_pkgmgrd_${pkgmgr}_is_installed"
-    $pkgmgrd_cmd "$args" || return $?
+    $pkgmgrd_cmd $args || return $?
 }
 
 function tpsh_lib_pkgmgr_is_supported() {
@@ -159,8 +180,10 @@ function tpsh_lib_pkgmgr_select_preferred() {
     fi
 
     # Use the preferred pkgmgr of the pkg
-    local supported_pkgmgrs="$(tpsh_lib_pkg_supported_pkgmgrs $args)" || return $?
-    >&2 echo SUPPORTED PKGMGRS $supported_pkgmgrs
-    local preferred_pkgmgr=$(printf "$supported_pkgmgrs" | head -n 1) || return $?
+    local supported_pkgmgrs=""
+    supported_pkgmgrs="$(tpsh_lib_pkg_supported_pkgmgrs $args)" || return $?
+
+    local preferred_pkgmgr=""
+    preferred_pkgmgr=$(printf "$supported_pkgmgrs" | head -n 1) || return $?
     echo $preferred_pkgmgr
 }

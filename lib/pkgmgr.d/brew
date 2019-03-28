@@ -23,6 +23,54 @@ __TPSH__LIB__PKGMGRD__BREW__LIB_DIR="${__TPSH__LIB__PKGMGRD__BREW__THIS_DIR}/.."
 ##### FUNCTIONS                                                 #####
 #####################################################################
 
+function tpsh_lib_pkgmgrd_brew_add() {
+    local pkg=""
+    local verbose=0
+    local version=""
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+            -*)
+                ;;
+            *)
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$arg"
+                elif [ $# -eq 1 ] && [ -z "$version" ]; then
+                    version="$arg"
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    local brew_output=""
+    local version_string=""
+    if [ ! -z "$version" ]; then
+        version_string="@$version"
+    fi
+
+    brew_output=$(brew install ${pkg}${version_string})
+    result=$?
+
+    if [ $verbose -eq 1 ]; then
+        local brew_msg_block="\n === begin brew output === \n\n$brew_output\n\n  === end brew output === "
+        if [ ! -z "$brew_output" ]; then
+            brew_msg_block=""
+        fi
+        if [ $result -eq 0 ]; then
+            tpsh_lib_log "Successfully installed ${pkg}${version_string} with brew $brew_msg_block"
+        else
+            tpsh_lib_log_err "Failed to install ${pkg}${version_string} with brew $brew_msg_block"
+        fi
+    fi
+
+    return $result;
+}
+
 function tpsh_lib_pkgmgrd_brew_is_installed() {
     local pkg=""
     local verbose=0
@@ -37,15 +85,10 @@ function tpsh_lib_pkgmgrd_brew_is_installed() {
             -*)
                 ;;
             *)
-                if [ $# -le 2 ]; then
-                    if [ -z "$pkg" ]; then
-                        pkg="$1"
-                    fi
-                fi
-                if [ $# -eq 1 ]; then
-                    if [ -z "$version" ]; then
-                        pkg="$1"
-                    fi
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$arg"
+                elif [ $# -eq 1 ] && [ -z "$version" ]; then
+                    version="$arg"
                 fi
                 ;;
         esac
@@ -53,11 +96,36 @@ function tpsh_lib_pkgmgrd_brew_is_installed() {
     done
 
     local brew_output=""
-    brew_output=$(brew ls --versions $pkg 2>&1 | grep -e $version)
+    brew_output=$(brew ls --versions $pkg 2>&1)
     result=$?
 
+    if [ $result -eq 1 ]; then
+        if [ $verbose -eq 1 ]; then
+            local brew_msg_block=""
+            if [ ! -z "$brew_output" ]; then
+                brew_msg_block="\n === begin brew output === \n\n$brew_output\n\n  === end brew output === "
+            fi
+            tpsh_lib_log_err "brew does not have any versions of pkg installed: $pkg $brew_msg_block"
+        fi
+        return $result
+    fi
+
+    if [ ! -z "$version" ]; then
+        printf "$brew_output" | grep "$version" > /dev/null
+        result=$?
+    fi
+
     if [ $verbose -eq 1 ]; then
-        tpsh_lib_log_err " === begin brew output === \n\n$brew_output\n\n  === end brew output === "
+        local brew_msg_block=""
+        if [ ! -z "$brew_output" ]; then
+            brew_msg_block="\n === begin brew output === \n\n$brew_output\n\n  === end brew output === "
+        fi
+
+        if [ $result -eq 0 ]; then
+            tpsh_lib_log "brew does not have pkg installed: $pkg $version $brew_msg_block"
+        else
+            tpsh_lib_log_err "brew does not have pkg installed: $pkg $version $brew_msg_block"
+        fi
     fi
 
     return $result;

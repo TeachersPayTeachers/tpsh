@@ -23,6 +23,55 @@ __TPSH__LIB__PKGMGRD__CASK__LIB_DIR="${__TPSH__LIB__PKGMGRD__CASK__THIS_DIR}/.."
 ##### FUNCTIONS                                                 #####
 #####################################################################
 
+function tpsh_lib_pkgmgrd_cask_add() {
+    local pkg=""
+    local verbose=0
+    local version=""
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+            -*)
+                ;;
+            *)
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$arg"
+                elif [ $# -eq 1 ] && [ -z "$version" ]; then
+                    version="$arg"
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    local cask_output=""
+    local version_string=""
+    if [ ! -z "$version" ]; then
+        version_string="@$version"
+    fi
+
+    cask_output=$(brew cask install ${pkg} 2>&1)
+    result=$?
+
+    if [ $verbose -eq 1 ]; then
+        local cask_msg_block=""
+        if [ ! -z "$cask_output" ]; then
+            cask_msg_block="\n === begin cask output === \n\n$cask_output\n\n  === end cask output === "
+        fi
+
+        if [ $result -eq 0 ]; then
+            tpsh_lib_log "Successfully installed pkg $pkg with cask $cask_msg_block"
+        else
+            tpsh_lib_log_err "Failed to install pkg $pkg with cask $cask_msg_block"
+        fi
+    fi
+
+    return $result;
+}
+
 function tpsh_lib_pkgmgrd_cask_is_installed() {
     local pkg=""
     local verbose=0
@@ -37,15 +86,10 @@ function tpsh_lib_pkgmgrd_cask_is_installed() {
             -*)
                 ;;
             *)
-                if [ $# -le 2 ]; then
-                    if [ -z "$pkg" ]; then
-                        pkg="$1"
-                    fi
-                fi
-                if [ $# -eq 1 ]; then
-                    if [ -z "$version" ]; then
-                        pkg="$1"
-                    fi
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$1"
+                elif [ $# -eq 1 ] && [ -z "$version" ]; then
+                    version="$1"
                 fi
                 ;;
         esac
@@ -53,11 +97,36 @@ function tpsh_lib_pkgmgrd_cask_is_installed() {
     done
 
     local cask_output=""
-    cask_output=$(brew cask ls --versions $pkg 2>&1 | grep -e "$version")
+    cask_output=$(brew cask ls --versions $pkg 2>&1)
     result=$?
+    
+    if [ $result -eq 1 ]; then
+        if [ $verbose -eq 1 ]; then
+            local cask_msg_block=""
+            if [ ! -z "$cask_output" ]; then
+                cask_msg_block="\n === begin cask output === \n\n$cask_output\n\n  === end cask output === "
+            fi
+            tpsh_lib_log_err "cask does not have any versions of pkg installed: $pkg $cask_msg_block"
+        fi
+        return $result
+    fi
+
+    if [ ! -z "$version" ]; then
+        printf "$cask_output" | grep "$version" > /dev/null
+        result=$?
+    fi
 
     if [ $verbose -eq 1 ]; then
-        tpsh_lib_log_err " === begin cask output === \n\n$cask_output\n\n  === end cask output === "
+        local cask_msg_block=""
+        if [ ! -z "$cask_output" ]; then
+            cask_msg_block="\n === begin cask output === \n\n$cask_output\n\n  === end cask output === "
+        fi
+
+        if [ $result -eq 0 ]; then
+            tpsh_lib_log "cask does not have pkg installed: $pkg $version $cask_msg_block"
+        else
+            tpsh_lib_log_err "cask does not have pkg installed: $pkg $version $cask_msg_block"
+        fi
     fi
 
     return $result;

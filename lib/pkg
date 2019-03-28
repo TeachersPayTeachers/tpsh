@@ -67,14 +67,16 @@ function tpsh_lib_pkg_is_manageable() {
                 ;;
             *)
                 if [ $# -eq 1 ]; then
-                    pkg="$1"
+                    pkg="$arg"
                 fi
                 ;;
         esac
         shift
     done
 
-    local pkg_path="$(tpsh_lib_pkg_path $args)"
+    local pkg_path=""
+    pkg_path="$(tpsh_lib_pkg_path $args)" || return $?
+
     if [ $? -eq 0 ]; then
         return 0
     else
@@ -151,14 +153,16 @@ function tpsh_lib_pkg_platform_path() {
         shift
     done
 
-    local pkg_path="$(tpsh_lib_pkg_path $args)"
+    local pkg_path=""
+    pkg_path="$(tpsh_lib_pkg_path $args)" || return $?
+
     local pkg_platform_path="${pkg_path}/platforms/${platform}"
     if [ -d "$pkg_platform_path" ]; then
         echo $pkg_platform_path
         return 0
     else
         if [ $verbose -eq 1 ]; then
-            tpsh_lib_log_err "pkg $pkg does not platform metadata at: $pkg_platform_path"
+            tpsh_lib_log_err "pkg does not define platform metadata at: $pkg_platform_path"
         fi
         return 1
     fi
@@ -181,14 +185,16 @@ function tpsh_lib_pkg_supported_pkgmgrs() {
         shift
     done
 
-    local pkg_platform_path="$(tpsh_lib_pkg_platform_path $args)" || return $?
+    local pkg_platform_path=""
+    pkg_platform_path="$(tpsh_lib_pkg_platform_path $args)" || return $?
+
     local supported_pkgmgrs_txt="${pkg_platform_path}/supported-pkgmgrs.txt"
     if [ -f "$supported_pkgmgrs_txt" ]; then
         cat $supported_pkgmgrs_txt
         return 0
     else
         if [ $verbose -eq 1 ]; then
-            tpsh_lib_log_err "pkg $pkg does not define any supported pkgmgrs in: $supported_pkgmgrs_txt"
+            tpsh_lib_log_err "pkg does not define any supported pkgmgrs in: $supported_pkgmgrs_txt"
         fi
         return 1
     fi
@@ -227,7 +233,8 @@ function tpsh_lib_pkg_supported_platforms() {
         shift
     done
 
-    local pkg_path="$(tpsh_lib_pkg_path $args)" || return $?
+    local pkg_path=""
+    pkg_path="$(tpsh_lib_pkg_path $args)" || return $?
 
     local supported_platform_txt="${pkg_path}/supported-platforms.txt"
     if [ ! -e "$supported_platform_txt" ]; then
@@ -264,7 +271,9 @@ function tpsh_lib_pkg_supports_platform() {
         shift
     done
 
-    local supported_platforms="$(tpsh_lib_pkg_supported_platforms $args)"
+    local supported_platforms=""
+    supported_platforms="$(tpsh_lib_pkg_supported_platforms $args)" || return $?
+
     local platform_pattern="$platform"
     if [ $generic_fallback -eq 1 ]; then
         platform_pattern="($platform_pattern\|generic)"
