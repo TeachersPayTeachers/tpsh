@@ -17,6 +17,7 @@ USAGE: tpsh pkg [--pkgmgr <pkgmgr>] [<command> [args]]
 COMMANDS
   add <pkg> [version]
   del <pkg>
+  is-installed <pkg> [version]
   upd[date] <pkg> [version]
 EOF
 }

@@ -27,5 +27,6 @@ __TPSH__CMD__PKG__CMD_PATH="${__TPSH__CMD__PKG__CMD_BASE}-${__TPSH__CMD__PKG__CM
 if [ ! -e "$__TPSH__CMD__PKG__CMD_PATH" ]; then
     $0 help --error "Not a valid command: $__TPSH__CMD__PKG__CMD"
 else
+    echo running $__TPSH__CMD__PKG__CMD_PATH $__TPSH__CMD__PKG__ARGS
     $__TPSH__CMD__PKG__CMD_PATH $__TPSH__CMD__PKG__ARGS
 fi

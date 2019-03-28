@@ -4,7 +4,6 @@
 ##### GLOBAL VARIABLES                                          #####
 #####################################################################
 
-__TPSH__CMD__PKG_ADD__ARGS="$@"
 __TPSH__CMD__PKG_ADD__THIS_DIR="$(dirname $0)"
 __TPSH__CMD__PKG_ADD__LIB_DIR="${__TPSH__CMD__PKG_ADD__THIS_DIR}/../lib"
 
@@ -12,25 +11,45 @@ __TPSH__CMD__PKG_ADD__LIB_DIR="${__TPSH__CMD__PKG_ADD__THIS_DIR}/../lib"
 ##### LOAD LIBRARIES                                            #####
 #####################################################################
 
-. "${__TPSH__CMD__PKG_ADD__LIB_DIR}/logging"
-. "${__TPSH__CMD__PKG_ADD__LIB_DIR}/pkg"
 . "${__TPSH__CMD__PKG_ADD__LIB_DIR}/pkgmgr"
-. "${__TPSH__CMD__PKG_ADD__LIB_DIR}/platform"
+. "${__TPSH__CMD__PKG_ADD__LIB_DIR}/logging"
 
 #####################################################################
 ##### FUNCTIONS                                                 #####
 #####################################################################
 
-function tpsh_cmd_pkg_add() {
-    local is_installed="$(tpsh_lib_pkgmgr_is_installed $__TPSH__CMD__PKG_ADD__ARGS)"
-}
+function tpsh_cmd_pkg_is_installed() {
+    local args="$@"
+    local pkg=""
 
-#####################################################################
-##### PARSE CLI OPTIONS                                         #####
-#####################################################################
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            -*)
+                ;;
+            *)
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$1"
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    echo "checking to see if pkg $pkg is installed"
+    tpsh_lib_pkgmgr_is_installed $args
+    result=$?
+    echo "got result $result"
+
+    if [ $result -eq 0 ]; then
+        tpsh_lib_log "pkg $pkg is installed"
+    else
+        tpsh_lib_log "pkg $pkg is not installed"
+    fi
+}
 
 #####################################################################
 ##### MAIN PROGRAM                                              #####
 #####################################################################
 
-tpsh_cmd_pkg_add
+tpsh_cmd_pkg_is_installed "$@"

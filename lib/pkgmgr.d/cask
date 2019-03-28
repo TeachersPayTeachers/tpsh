@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+#####################################################################
+##### GLOBAL VARIABLES                                          #####
+#####################################################################
+
+__TPSH__LIB__PKGMGRD__CASK__DEFINED=${__TPSH__LIB__PKGMGRD__CASK__DEFINED:-0}
+if [ $__TPSH__LIB__PKGMGRD__CASK__DEFINED -eq 1 ]; then
+    return 0
+else
+    __TPSH__LIB__PKGMGRD__CASK__DEFINED=1
+fi
+__TPSH__LIB__PKGMGRD__CASK__THIS_DIR="$(dirname $BASH_SOURCE)"
+__TPSH__LIB__PKGMGRD__CASK__LIB_DIR="${__TPSH__LIB__PKGMGRD__CASK__THIS_DIR}/.."
+
+#####################################################################
+##### LOAD LIBRARIES                                            #####
+#####################################################################
+
+. "${__TPSH__LIB__PKGMGRD__CASK__LIB_DIR}/logging"
+
+#####################################################################
+##### FUNCTIONS                                                 #####
+#####################################################################
+
+function tpsh_pkgmgr_cask_is_installed() {
+    local pkg=""
+    local verbose=0
+    local version=""
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+            -*)
+                ;;
+            *)
+                if [ $# -le 2 ]; then
+                    if [ -z "$pkg" ]; then
+                        pkg="$1"
+                    fi
+                fi
+                if [ $# -eq 1 ]; then
+                    if [ -z "$version" ]; then
+                        pkg="$1"
+                    fi
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    local cask_output=""
+    cask_output=$(brew cask ls --versions $pkg 2>&1 | grep -e $version)
+    result=$?
+
+    if [ $verbose -eq 1 ]; then
+        tpsh_lib_log_err " === begin cask output === \n\n$cask_output\n\n  === end cask output === "
+    fi
+
+    return $result;
+}
