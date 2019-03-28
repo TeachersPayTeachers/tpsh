@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+function tpsh_lib_log() {
+    printf "[tpsh] $@"
+}
+
+function tpsh_lib_log_err() {
+    >&2 printf "\033[1;91m$@\033[0m\n"
+}
+
+function tpsh_lib_log_err_exit() {
+    tpsh_lib_log_err "$@"
+    exit 1
+}
+
+function tpsh_lib_log_exit() {
+    tpsh_lib_log "$@"
+    exit 0
+}

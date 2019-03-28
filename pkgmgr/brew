@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+function tpsh_pkgmgr_brew_deps_pkg() {
+    echo "brew"
+}
+
+function tpsh_pkgmgr_brew_is_installed() {
+    which brew > /dev/null
+}
+
+function tpsh_pkgmgr_brew_path() {
+    if tpsh_pkgmgr_brew_is_installed; then
+        which brew
+    else
+        return 1
+    fi
+}
+
+function tpsh_pkgmgr_brew_platforms() {
+    echo "darwin"
+}

@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+function tpsh_lib_platform_name() {
+    local name=""
+    case "$(uname -s)" in
+        Darwin*)
+            name="darwin"
+            ;;
+    esac
+
+    if [ ! -z "$name" ]; then
+        echo "$name"
+        return 0
+    else
+        return 1
+    fi
+}

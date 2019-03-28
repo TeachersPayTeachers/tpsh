@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+function tpsh_pkgmgr_apt_deps_pkg() {
+    echo ""
+}
+
+function tpsh_pkgmgr_apt_platforms() {
+    echo "debian ubuntu"
+}
