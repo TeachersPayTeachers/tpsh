@@ -10,6 +10,7 @@
     DOWNLOAD_DIR="${DOWNLOAD_DIR:-}"
     DOWNLOAD_FILE="tptsh.$EXT"
     DOWNLOAD_PATH=""
+    FORCE=0
     KEEP_DOWNLOAD_DIR=0
     URL_BASE="https://github.com/TeachersPayTeachers/tpsh/tarball"
     URL=""
@@ -92,6 +93,9 @@
               DOWNLOAD_DIR="$2"
               shift
               ;;
+            --force)
+              FORCE=1
+              ;;
             --install-dir)
               INSTALL_DIR="$2"
               shift
@@ -136,7 +140,7 @@
         log_exit "Download path $DOWNLOAD_PATH already exists"
     fi
 
-    if [ -e "$INSTALL_DIR" ]; then
+    if [ $FORCE -eq 0 ] && [ -e "$INSTALL_DIR" ]; then
         log_exit "Install path $INSTALL_DIR already exists"
     else
         mkdir -p $INSTALL_DIR
