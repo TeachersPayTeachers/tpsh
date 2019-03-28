@@ -76,7 +76,6 @@ function tpsh_lib_pkg_is_manageable() {
 
     local pkg_path="$(tpsh_lib_pkg_path $args)"
     if [ $? -eq 0 ]; then
-        echo $pkg_path
         return 0
     else
         if [ $verbose -eq 1 ]; then
@@ -271,7 +270,7 @@ function tpsh_lib_pkg_supports_platform() {
         platform_pattern="($platform_pattern\|generic)"
     fi
 
-    if ! printf "$supported_platforms" |  grep "$platform_pattern" > /dev/null; then
+    if ! printf "$supported_platforms" | grep "$platform_pattern" > /dev/null; then
         if [ $verbose -eq 1 ]; then
             tpsh_lib_log_err "pkg $pkg does not support platform: $platform_pattern"
         fi

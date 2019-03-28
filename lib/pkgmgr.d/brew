@@ -23,7 +23,7 @@ __TPSH__LIB__PKGMGRD__BREW__LIB_DIR="${__TPSH__LIB__PKGMGRD__BREW__THIS_DIR}/.."
 ##### FUNCTIONS                                                 #####
 #####################################################################
 
-function tpsh_pkgmgr_brew_is_installed() {
+function tpsh_lib_pkgmgrd_brew_is_installed() {
     local pkg=""
     local verbose=0
     local version=""

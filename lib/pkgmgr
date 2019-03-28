@@ -50,7 +50,6 @@ function tpsh_lib_pkgmgr_current() {
     done
 
     local supported_pkgmgrs="$(tpsh_lib_pkg_supported_pkgmgrs $args)"
-    >&2 echo SUPPORTED PKGMGRS $supported_pkgmgrs
     for pkgmgr in $supported_pkgmgrs; do
         if tpsh_lib_pkgmgr_is_installed --pkgmgr $pkgmgr $args; then
             echo $pkgmgr
@@ -94,8 +93,8 @@ function tpsh_lib_pkgmgr_is_installed() {
     pkgmgr="$(tpsh_lib_pkgmgr_select_preferred $args)"
     >&2 echo PREFERRED PKGMGR $pkgmgr
     tpsh_lib_pkgmgr_is_supported "$args" || return $?
-    local pkgmgr_cmd="tpsh_lib_pkgmgr_${pkgmgr}_is_installed"
-    $pkgmgr_cmd "$args" || return $?
+    local pkgmgrd_cmd="tpsh_lib_pkgmgrd_${pkgmgr}_is_installed"
+    $pkgmgrd_cmd "$args" || return $?
 }
 
 function tpsh_lib_pkgmgr_is_supported() {
@@ -161,6 +160,7 @@ function tpsh_lib_pkgmgr_select_preferred() {
 
     # Use the preferred pkgmgr of the pkg
     local supported_pkgmgrs="$(tpsh_lib_pkg_supported_pkgmgrs $args)" || return $?
+    >&2 echo SUPPORTED PKGMGRS $supported_pkgmgrs
     local preferred_pkgmgr=$(printf "$supported_pkgmgrs" | head -n 1) || return $?
     echo $preferred_pkgmgr
 }

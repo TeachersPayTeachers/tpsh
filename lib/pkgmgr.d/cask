@@ -23,7 +23,7 @@ __TPSH__LIB__PKGMGRD__CASK__LIB_DIR="${__TPSH__LIB__PKGMGRD__CASK__THIS_DIR}/.."
 ##### FUNCTIONS                                                 #####
 #####################################################################
 
-function tpsh_pkgmgr_cask_is_installed() {
+function tpsh_lib_pkgmgrd_cask_is_installed() {
     local pkg=""
     local verbose=0
     local version=""
@@ -53,7 +53,7 @@ function tpsh_pkgmgr_cask_is_installed() {
     done
 
     local cask_output=""
-    cask_output=$(brew cask ls --versions $pkg 2>&1 | grep -e $version)
+    cask_output=$(brew cask ls --versions $pkg 2>&1 | grep -e "$version")
     result=$?
 
     if [ $verbose -eq 1 ]; then
