@@ -6,6 +6,7 @@
     #####################################################################
 
     CLEANUP_FILES=""
+    DEPS="curl tar"
     EXT="tar.gz"
     DOWNLOAD_DIR="${DOWNLOAD_DIR:-}"
     DOWNLOAD_FILE="tptsh.$EXT"
@@ -24,8 +25,9 @@
     #####################################################################
 
     function deps_check() {
+        local deps="$@"
         local missing_deps=""
-        for dep in curl tar; do
+        for dep in $deps; do
             if ! which $dep > /dev/null; then
                 missing_deps="$missing_deps $dep"
             fi
@@ -49,7 +51,7 @@
     function download() {
         local url="$1"
         local download_path="$2"
-        curl -L $url -o $download_path
+        curl -sL $url -o $download_path
         if [ $? -ne 0 ] || [ ! -e $download_path ]; then
             return 1
         else
@@ -78,7 +80,7 @@
     function unarchive() {
         local archive="$1"
         local unarchive_dest="$2"
-        tar -zvxf $archive -C $unarchive_dest --strip-components=1
+        tar -zxf $archive -C $unarchive_dest --strip-components=1
         return $?
     }
 
@@ -146,18 +148,25 @@
         mkdir -p $INSTALL_DIR
     fi
 
-    missing_deps=$(deps_check)
+    log "Checking for dependencies: $DEPS"
+    missing_deps=$(deps_check $DEPS)
     if [ ! -z "$missing_deps" ]; then
 		log_exit "Missing deps: $missing_deps"
     fi
+    log "All dependencies are present"
 
+    log "Downloading $URL to $DOWNLOAD_PATH"
     download $URL $DOWNLOAD_PATH \
         || log_exit "Failed to download $URL to $DOWNLOAD_PATH"
-    log "Successfully downloaded $URL to $DOWNLOAD_PATH"
+    log "Downloaded $URL to $DOWNLOAD_PATH"
 
+    log "Unarchiving $DOWNLOAD_PATH to $INSTALL_DIR"
     unarchive $DOWNLOAD_PATH $INSTALL_DIR \
         || log_exit "Failed to unarchive $DOWNLOAD_PATH to $INSTALL_DIR"
+    log "Unarchived $DOWNLOAD_PATH to $INSTALL_DIR"
 
+    log "Running installer $INSTALL_PATH"
     install $INSTALL_PATH \
 		|| log_exit "Failed to run installer"
+    log "Installer completed successfully!"
 }
