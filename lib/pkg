@@ -25,6 +25,40 @@ __TPSH__LIB__PKG__PKG_DIR="${__TPSH__LIB__PKG__THIS_DIR}/../pkg"
 ##### FUNCTIONS                                                 #####
 #####################################################################
 
+function tpsh_lib_pkg_clean_name() {
+    local pkg="$1"
+    echo $pkg | tr '-' '_'
+}
+
+function tpsh_lib_pkg_deps() {
+    local args="$@"
+    local verbose=0
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+        esac
+        shift
+    done
+
+    local pkg_platform_path=""
+    pkg_platform_path="$(tpsh_lib_pkg_platform_path $args)" || return $?
+
+    local deps_txt="${pkg_platform_path}/deps.txt"
+    if [ -f "$deps_txt" ]; then
+        cat $deps_txt
+        return 0
+    else
+        if [ $verbose -eq 1 ]; then
+            tpsh_lib_log_err "pkg does not define any deps in: $deps_txt"
+        fi
+        return 1
+    fi
+}
+
 function tpsh_lib_pkg_is_managed() {
     local args="$@"
     local generic_fallback=1

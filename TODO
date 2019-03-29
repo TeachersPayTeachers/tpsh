@@ -1,15 +1,15 @@
-- finish pkg mgr selection
-- finish brew pkgmgr
-- add python package
-- add awscli package
-- add helm package
-- add kubectl package
-- add docker package
-- add telepresence package
-- add git auth/lib
-- create repo cmd
-- add charts repo
-- factor in "current installation method" into pkgmgr selection
-- support for profile installation
-- create dev-tools/ode-user profile
-- test add/uninstall/update
+[ ] finish pkg mgr selection
+[ ] finish brew pkgmgr
+[ ] add python package
+[ ] add awscli package
+[ ] add helm package
+[ ] add kubectl package
+[ ] add docker package
+[ ] add telepresence package
+[ ] add git auth/lib
+[ ] create repo cmd
+[ ] add charts repo
+[ ] factor in "current installation method" into pkgmgr selection
+[ ] support for profile installation
+[ ] create dev-tools/ode-user profile
+[ ] test add/uninstall/update

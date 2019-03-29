@@ -13,7 +13,7 @@ __TPSH__CMD__HELP__MESSAGE=""
 
 function tpsh_cmd_help() {
     cat <<EOF
-USAGE: tpsh <cmd> [<command> [args]]
+USAGE: tpsh <cmd> [--verbose] [<subcommand> [args]]
 COMMANDS
   help
   pkg

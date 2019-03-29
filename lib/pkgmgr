@@ -31,6 +31,8 @@ function tpsh_lib_pkgmgr_add() {
     local args="$@"
     local pkg=""
 
+    tpsh_lib_pkgmgr_install_deps $args || return $?
+
     while [ $# -gt 0 ]; do
         arg="$1"
         case $arg in
@@ -90,6 +92,33 @@ function tpsh_lib_pkgmgr_current() {
     fi
 
     return 1
+}
+
+function tpsh_lib_pkgmgr_install_deps() {
+    local args="$@"
+    local deps=""
+    local flags=""
+    local pkg=""
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            -*)
+                flags="$flags $arg"
+                ;;
+            *)
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$arg"
+                fi
+        esac
+        shift
+    done
+
+    deps="$(tpsh_lib_pkg_deps $args)" || return $?
+
+    printf "$deps" | while read dep; do
+        tpsh_lib_pkgmgr_add $flags $dep || return $?
+    done
 }
 
 function tpsh_lib_pkgmgr_is_installed() {

@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+#####################################################################
+##### GLOBAL VARIABLES                                          #####
+#####################################################################
+
+__TPSH__PKG__XCODE_CLT__INSTALLER__DEFINED=${__TPSH__PKG__XCODE_CLT__INSTALLER__DEFINED:-0}
+if [ $__TPSH__PKG__XCODE_CLT__INSTALLER__DEFINED -eq 1 ]; then
+    return 0
+else
+    __TPSH__PKG__XCODE_CLT__INSTALLER__DEFINED=1
+fi
+__TPSH__PKG__XCODE_CLT__THIS_DIR="$(dirname $BASH_SOURCE)"
+__TPSH__PKG__XCODE_CLT__LIB_DIR="${__TPSH__PKG__XCODE_CLT__THIS_DIR}/../../../../lib"
+
+#####################################################################
+##### LOAD LIBRARIES                                            #####
+#####################################################################
+
+. "${__TPSH__PKG__XCODE_CLT__LIB_DIR}/logging"
+
+#####################################################################
+##### FUNCTIONS                                                 #####
+#####################################################################
+
+function tpsh_pkg_xcode_clt_installer_install() {
+    # https://apple.stackexchange.com/a/195963
+    touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
+    local prod=$(softwareupdate -l \
+        | grep "\*.*Command Line"  \
+        | head -n 1                \
+        | awk -F"*" '{print $2}'   \
+        | sed -e 's/^ *//'         \
+        | tr -d '\n')
+	softwareupdate -i "$prod" --verbose || return $?
+}
+
+function tpsh_pkg_xcode_clt_installer_is_installed() {
+    which xcode-select > /dev/null || return $?
+    xcode-select -p > /dev/null || return $?
+    [ -d $(xcode-select -p) ] || return $?
+    [ -x "$(xcode-select -p)/usr/bin/gcc" ] || return $?
+}
+
+function tpsh_pkg_xcode_clt_installer_update() {
+    return 1
+}
+
+function tpsh_pkg_xcode_clt_installer_uninstall() {
+	return 1
+}

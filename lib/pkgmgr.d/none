@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+
+#####################################################################
+##### GLOBAL VARIABLES                                          #####
+#####################################################################
+
+__TPSH__LIB__PKGMGRD__NONE__DEFINED=${__TPSH__LIB__PKGMGRD__NONE__DEFINED:-0}
+if [ $__TPSH__LIB__PKGMGRD__NONE__DEFINED -eq 1 ]; then
+    return 0
+else
+    __TPSH__LIB__PKGMGRD__NONE__DEFINED=1
+fi
+__TPSH__LIB__PKGMGRD__NONE__THIS_DIR="$(dirname $BASH_SOURCE)"
+__TPSH__LIB__PKGMGRD__NONE__LIB_DIR="${__TPSH__LIB__PKGMGRD__NONE__THIS_DIR}/.."
+
+#####################################################################
+##### LOAD LIBRARIES                                            #####
+#####################################################################
+
+. "${__TPSH__LIB__PKGMGRD__NONE__LIB_DIR}/logging"
+. "${__TPSH__LIB__PKGMGRD__NONE__LIB_DIR}/pkg"
+
+#####################################################################
+##### FUNCTIONS                                                 #####
+#####################################################################
+
+function tpsh_lib_pkgmgrd_none_add() {
+    local pkg=""
+    local verbose=0
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+            -*)
+                ;;
+            *)
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$arg"
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    if [ $verbose -eq 1 ]; then
+        tpsh_lib_log_err "automatic installation of ${pkg} is not supported"
+    fi
+
+    return 1
+}
+
+function tpsh_lib_pkgmgrd_none_is_installed() {
+    local pkg=""
+    local verbose=0
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+            -*)
+                ;;
+            *)
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$arg"
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    which $pkg > /dev/null
+    result=$?
+
+    if [ $result -ne 0 ] && [ $verbose -eq 1 ]; then
+        tpsh_lib_log_err "pkg $pkg is not installed"
+    fi
+
+    return $result;
+}

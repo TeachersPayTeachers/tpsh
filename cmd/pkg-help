@@ -13,12 +13,10 @@ __TPSH__CMD__PKG_HELP__MESSAGE=""
 
 function tpsh_cmd_pkg_help() {
     cat <<EOF
-USAGE: tpsh pkg [--pkgmgr <pkgmgr>] [<command> [args]]
+USAGE: tpsh pkg [--verbose] [--pkgmgr <pkgmgr>] [<command> [args]]
 COMMANDS
   add <pkg> [version]
-  del <pkg>
   is-installed <pkg> [version]
-  upd[date] <pkg> [version]
 EOF
 }
 

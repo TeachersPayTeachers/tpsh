@@ -63,9 +63,9 @@ function tpsh_lib_pkgmgrd_cask_add() {
         fi
 
         if [ $result -eq 0 ]; then
-            tpsh_lib_log "Successfully installed pkg $pkg with cask $cask_msg_block"
+            tpsh_lib_log "successfully installed pkg $pkg with cask $cask_msg_block"
         else
-            tpsh_lib_log_err "Failed to install pkg $pkg with cask $cask_msg_block"
+            tpsh_lib_log_err "failed to install pkg $pkg with cask $cask_msg_block"
         fi
     fi
 
