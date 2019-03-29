@@ -13,6 +13,7 @@
     DOWNLOAD_PATH=""
     FORCE=0
     KEEP_DOWNLOAD_DIR=0
+    PKGS=""
     URL_BASE="https://github.com/TeachersPayTeachers/tpsh/tarball"
     URL=""
     INSTALL_DIR="${INSTALL_DIR:-$HOME/.tpt}"
@@ -77,6 +78,12 @@
         exit 1
     }
 
+    function pkg_add() {
+        local pkg="$1"
+        $TPSH_PATH pkg add $pkg
+        return $?
+    }
+
     function unarchive() {
         local archive="$1"
         local unarchive_dest="$2"
@@ -100,6 +107,10 @@
               ;;
             --install-dir)
               INSTALL_DIR="$2"
+              shift
+              ;;
+            --pkg-add)
+              PKGS="$PKGS $2"
               shift
               ;;
             --keep-download-dir)
@@ -132,6 +143,7 @@
 
     DOWNLOAD_PATH="$DOWNLOAD_DIR/$DOWNLOAD_FILE"
     INSTALL_PATH="$INSTALL_DIR/$INSTALL_FILE"
+    TPSH_PATH="$INSTALL_DIR/tpsh"
     URL="$URL_BASE/$RELEASE"
 
     #####################################################################
@@ -169,4 +181,11 @@
     install $INSTALL_PATH \
 		|| log_exit "Failed to run installer"
     log "Installer completed successfully!"
+
+    for pkg in $PKGS; do
+      log "Installing pkg $pkg"
+      pkg_add $pkg \
+        || log_exit "Failed to install package $pkg"
+      log "Installed pkg $pkg"
+    done
 }

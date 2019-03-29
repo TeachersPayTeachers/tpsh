@@ -9,6 +9,7 @@
 [x] add telepresence package
 [x] add dmg pkgmgr
 [x] add docker package
+[x] basic pkg-based presets
 [ ] add jq package
 [ ] support for profile installation
 [ ] create dev-tools/ode-user profile
