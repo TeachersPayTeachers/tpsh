@@ -4,25 +4,23 @@
 ##### GLOBAL VARIABLES                                          #####
 #####################################################################
 
-__TPSH__CMD__HELP__ERROR=0
-__TPSH__CMD__HELP__MESSAGE=""
+__TPSH__CMD__PLATFORM_HELP__ERROR=0
+__TPSH__CMD__PLATFORM_HELP__MESSAGE=""
 
 #####################################################################
 ##### FUNCTIONS                                                 #####
 #####################################################################
 
-function tpsh_cmd_help() {
+function tpsh_cmd_platform_help() {
     cat <<EOF
-USAGE: tpsh <cmd> [<subcommand> [args]]
+USAGE: tpsh platform [--verbose] [<command> [args]]
 COMMANDS
-  help
-  pkg
-  repo
+  version
 EOF
 }
 
-function tpsh_cmd_help_err() {
-    >&2 tpsh_cmd_help
+function tpsh_cmd_platform_help_err() {
+    >&2 tpsh_cmd_platform_help
     if [ $# -gt 0 ]; then
         printf "\n\033[1;91m$@\033[0m\n"
     fi
@@ -36,13 +34,13 @@ while [ $# -gt 0 ]; do
     arg="$1"
     case $arg in
         --error)
-            __TPSH__CMD__HELP__ERROR=1
+            __TPSH__CMD__PLATFORM_HELP__ERROR=1
             ;;
         *)
-            if [ -z "$__TPSH__CMD__HELP__MESSAGE" ]; then
-                __TPSH__CMD__HELP__MESSAGE="$arg"
+            if [ -z "$__TPSH__CMD__PLATFORM_HELP__MESSAGE" ]; then
+                __TPSH__CMD__PLATFORM_HELP__MESSAGE="$arg"
             else
-                __TPSH__CMD__HELP__MESSAGE="$__TPSH__CMD__HELP__MESSAGE $arg"
+                __TPSH__CMD__PLATFORM_HELP__MESSAGE="$__TPSH__CMD__PLATFORM_HELP__MESSAGE $arg"
             fi
             ;;
     esac
@@ -53,9 +51,9 @@ done
 ##### MAIN PROGRAM                                              #####
 #####################################################################
 
-if [ $__TPSH__CMD__HELP__ERROR -eq 1 ]; then
-    tpsh_cmd_help_err "$__TPSH__CMD__HELP__MESSAGE"
+if [ $__TPSH__CMD__PLATFORM_HELP__ERROR -eq 1 ]; then
+    tpsh_cmd_platform_help_err "$__TPSH__CMD__PLATFORM_HELP__MESSAGE"
     exit 1
 else
-    tpsh_cmd_help
+    tpsh_cmd_platform_help
 fi

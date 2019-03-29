@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+#####################################################################
+##### GLOBAL VARIABLES                                          #####
+#####################################################################
+
+__TPSH__CMD__PLATFORM__ARGS=""
+__TPSH__CMD__PLATFORM__CMD="help"
+__TPSH__CMD__PLATFORM__CMD_BASE="$0"
+__TPSH__CMD__PLATFORM__CMD_PATH=""
+
+#####################################################################
+##### PARSE CLI OPTIONS                                         #####
+#####################################################################
+
+if [ $# -gt 0 ]; then
+    __TPSH__CMD__PLATFORM__CMD="$1"
+    shift
+fi
+__TPSH__CMD__PLATFORM__ARGS="$@"
+__TPSH__CMD__PLATFORM__CMD_PATH="${__TPSH__CMD__PLATFORM__CMD_BASE}-${__TPSH__CMD__PLATFORM__CMD}"
+
+#####################################################################
+##### MAIN PROGRAM                                              #####
+#####################################################################
+
+if [ ! -e "$__TPSH__CMD__PLATFORM__CMD_PATH" ]; then
+    $0 help --error "Not a valid command: $__TPSH__CMD__PLATFORM__CMD"
+else
+    $__TPSH__CMD__PLATFORM__CMD_PATH $__TPSH__CMD__PLATFORM__ARGS
+fi

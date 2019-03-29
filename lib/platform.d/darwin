@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+#####################################################################
+##### GLOBAL VARIABLES                                          #####
+#####################################################################
+
+__TPSH__LIB__PLATFORMD__DARWIN__DEFINED=${__TPSH__LIB__PLATFORMD__DARWIN__DEFINED:-0}
+if [ $__TPSH__LIB__PLATFORMD__DARWIN__DEFINED -eq 1 ]; then
+    return 0
+else
+    __TPSH__LIB__PLATFORMD__DARWIN__DEFINED=1
+fi
+
+#####################################################################
+##### FUNCTIONS                                                 #####
+#####################################################################
+
+function tpsh_lib_platformd_darwin_version() {
+    defaults read loginwindow SystemVersionStampAsString
+}

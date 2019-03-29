@@ -11,7 +11,7 @@ else
     __TPSH__LIB__PKGMGR__DEFINED=1
 fi
 __TPSH__LIB__PKGMGR__THIS_DIR="$(dirname $BASH_SOURCE)"
-__TPSH__LIB__PKGMGR__PKGMGR_DIR="${__TPSH__LIB__PKGMGR__THIS_DIR}/pkgmgr.d"
+__TPSH__LIB__PKGMGR__PKGMGRD="${__TPSH__LIB__PKGMGR__THIS_DIR}/pkgmgr.d"
 
 #####################################################################
 ##### LOAD LIBRARIES                                            #####
@@ -19,7 +19,7 @@ __TPSH__LIB__PKGMGR__PKGMGR_DIR="${__TPSH__LIB__PKGMGR__THIS_DIR}/pkgmgr.d"
 
 . "${__TPSH__LIB__PKGMGR__THIS_DIR}/logging"
 . "${__TPSH__LIB__PKGMGR__THIS_DIR}/pkg"
-for pkgmgr in $__TPSH__LIB__PKGMGR__PKGMGR_DIR/*; do
+for pkgmgr in $__TPSH__LIB__PKGMGR__PKGMGRD/*; do
     . $pkgmgr
 done
 
@@ -207,7 +207,7 @@ function tpsh_lib_pkgmgr_is_supported() {
         shift
     done
 
-    local pkgmgr_path="${__TPSH__LIB__PKGMGR__PKGMGR_DIR}/${pkgmgr}"
+    local pkgmgr_path="${__TPSH__LIB__PKGMGR__PKGMGRD}/${pkgmgr}"
     if [ ! -e "$pkgmgr_path" ]; then
         if [ $verbose -eq 1 ]; then
             tpsh_lib_log_err "pkgmgr $pkgmgr is not defined at: $pkgmgr_path"

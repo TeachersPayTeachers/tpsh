@@ -6,6 +6,18 @@ if [ $__TPSH__LIB__PLATFORM__DEFINED -eq 1 ]; then
 else
     __TPSH__LIB__PLATFORM__DEFINED=1
 fi
+__TPSH__LIB__PLATFORM__THIS_DIR="$(dirname $BASH_SOURCE)"
+__TPSH__LIB__PLATFORM__PLATFORMD="${__TPSH__LIB__PLATFORM__THIS_DIR}/platform.d"
+
+
+#####################################################################
+##### LOAD LIBRARIES                                            #####
+#####################################################################
+
+. "${__TPSH__LIB__PLATFORM__THIS_DIR}/logging"
+for pkgmgr in $__TPSH__LIB__PLATFORM__PLATFORMD/*; do
+    . $pkgmgr
+done
 
 function tpsh_lib_platform_name() {
     local name=""
@@ -21,4 +33,10 @@ function tpsh_lib_platform_name() {
     else
         return 1
     fi
+}
+
+function tpsh_lib_platform_version() {
+    local platform_name="$(tpsh_lib_platform_name)"
+    local platform_version_cmd="tpsh_lib_platformd_${platform_name}_version"
+    $platform_version_cmd || return $?
 }
