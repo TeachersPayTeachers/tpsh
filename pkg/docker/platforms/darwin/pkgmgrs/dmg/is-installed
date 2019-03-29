@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+version=$1
+
+which docker > /dev/null || return 1
+
+if [ ! -z $version ]; then
+    docker --version | grep $version
+    return $?
+fi

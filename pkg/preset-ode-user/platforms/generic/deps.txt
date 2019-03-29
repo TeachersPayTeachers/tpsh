@@ -1,0 +1,6 @@
+awscli
+helm
+kubectl
+aws-iam-authenticator
+telepresence
+docker

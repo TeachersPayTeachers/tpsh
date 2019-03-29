@@ -158,7 +158,7 @@ function tpsh_lib_pkgmgrd_dmg_is_installed() {
             *)
                 if [ $# -le 2 ] && [ -z "$pkg" ]; then
                     pkg="$arg"
-                elif [ $# -eq 1 ] && [ -z "$version" ]; then
+                elif [ $# -le 1 ] && [ -z "$version" ]; then
                     version="$arg"
                 fi
                 ;;
@@ -166,104 +166,21 @@ function tpsh_lib_pkgmgrd_dmg_is_installed() {
         shift
     done
 
-    local dmg_output=""
-    dmg_output=$(dmg ls --versions $formula_name 2>&1)
-    result=$?
-
-    if [ $result -eq 1 ]; then
-        if [ $verbose -eq 1 ]; then
-            local dmg_msg_block=""
-            if [ ! -z "$dmg_output" ]; then
-                dmg_msg_block="\n === begin dmg output === \n\n$dmg_output\n\n  === end dmg output === "
+    local is_installed=""
+    local pkgmgr_config_path=""
+    pkgmgr_config_path="$(tpsh_lib_pkg_pkgmgr_config_path --pkgmgr dmg $args)"
+    if [ $? -eq 0 ]; then
+        is_installed="$pkgmgr_config_path/is-installed"
+        if [ ! -x "$is_installed" ]; then
+            if [ $verbose -eq 1 ]; then
+                tpsh_lib_log_err "pkg $pkg does define an executable installation checker at: $is_installed"
             fi
-            tpsh_lib_log_err "dmg does not have any versions of pkg installed: $pkg $dmg_msg_block"
+            return 1
         fi
-        return $result
-    fi
-
-    if [ -z "$version" ]; then
-        return $result
+        $is_installed $version || return $?
     else
-        printf "$dmg_output" | grep "$version" > /dev/null
-        result=$?
+        return 1
     fi
-
-    if [ $verbose -eq 1 ]; then
-        local dmg_msg_block=""
-        if [ ! -z "$dmg_output" ]; then
-            dmg_msg_block="\n === begin dmg output === \n\n$dmg_output\n\n  === end dmg output === "
-        fi
-
-        if [ $result -eq 0 ]; then
-            tpsh_lib_log "dmg does not have pkg installed: $pkg $version $dmg_msg_block"
-        else
-            tpsh_lib_log_err "dmg does not have pkg installed: $pkg $version $dmg_msg_block"
-        fi
-    fi
-
-    return $result;
-}
-
-function tpsh_lib_pkgmgrd_dmg_is_installed() {
-    local pkg=""
-    local verbose=0
-    local version=""
-
-    while [ $# -gt 0 ]; do
-        arg="$1"
-        case $arg in
-            --verbose)
-                verbose=1
-                ;;
-            -*)
-                ;;
-            *)
-                if [ $# -le 2 ] && [ -z "$pkg" ]; then
-                    pkg="$arg"
-                elif [ $# -eq 1 ] && [ -z "$version" ]; then
-                    version="$arg"
-                fi
-                ;;
-        esac
-        shift
-    done
-
-    local dmg_output=""
-    dmg_output=$(dmg ls --versions $formula_name 2>&1)
-    result=$?
-
-    if [ $result -eq 1 ]; then
-        if [ $verbose -eq 1 ]; then
-            local dmg_msg_block=""
-            if [ ! -z "$dmg_output" ]; then
-                dmg_msg_block="\n === begin dmg output === \n\n$dmg_output\n\n  === end dmg output === "
-            fi
-            tpsh_lib_log_err "dmg does not have any versions of pkg installed: $pkg $dmg_msg_block"
-        fi
-        return $result
-    fi
-
-    if [ -z "$version" ]; then
-        return $result
-    else
-        printf "$dmg_output" | grep "$version" > /dev/null
-        result=$?
-    fi
-
-    if [ $verbose -eq 1 ]; then
-        local dmg_msg_block=""
-        if [ ! -z "$dmg_output" ]; then
-            dmg_msg_block="\n === begin dmg output === \n\n$dmg_output\n\n  === end dmg output === "
-        fi
-
-        if [ $result -eq 0 ]; then
-            tpsh_lib_log "dmg does not have pkg installed: $pkg $version $dmg_msg_block"
-        else
-            tpsh_lib_log_err "dmg does not have pkg installed: $pkg $version $dmg_msg_block"
-        fi
-    fi
-
-    return $result;
 }
 
 function tpsh_lib_pkgmgrd_dmg_content() {
