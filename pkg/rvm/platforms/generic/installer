@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+#####################################################################
+##### GLOBAL VARIABLES                                          #####
+#####################################################################
+
+__TPSH__PKG__RVM__INSTALLER__DEFINED=${__TPSH__PKG__RVM__INSTALLER__DEFINED:-0}
+if [ $__TPSH__PKG__RVM__INSTALLER__DEFINED -eq 1 ]; then
+    return 0
+else
+    __TPSH__PKG__RVM__INSTALLER__DEFINED=1
+fi
+
+#####################################################################
+##### FUNCTIONS                                                 #####
+#####################################################################
+
+function tpsh_pkg_rvm_installer_install() {
+    \curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles
+    result=$?
+    return $result
+}
+
+function tpsh_pkg_rvm_installer_is_installed() {
+    which rvm > /dev/null || return $?
+}
+
+function tpsh_pkg_rvm_installer_update() {
+    rvm get stable || return $?
+    rvm reload || return $?
+}
+
+function tpsh_pkg_rvm_installer_uninstall() {
+    echo yes | rvm implode
+    [ $? -eq 1 ] || return 1
+    rm -rf $HOME/.rvm || return $?
+}

@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+#####################################################################
+##### GLOBAL VARIABLES                                          #####
+#####################################################################
+
+__TPSH__PKG__NVM__INSTALLER__DEFINED=${__TPSH__PKG__NVM__INSTALLER__DEFINED:-0}
+if [ $__TPSH__PKG__NVM__INSTALLER__DEFINED -eq 1 ]; then
+    return 0
+else
+    __TPSH__PKG__NVM__INSTALLER__DEFINED=1
+fi
+
+#####################################################################
+##### FUNCTIONS                                                 #####
+#####################################################################
+
+function tpsh_pkg_nvm_installer_install() {
+    curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | bash
+    [ $? -eq 0 ] || return 1
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+}
+
+function tpsh_pkg_nvm_installer_is_installed() {
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+    command -v nvm || return 1
+}
+
+function tpsh_pkg_nvm_installer_update() {
+    tpsh_pkg_nvm_installer_install || return $?
+}
+
+function tpsh_pkg_nvm_installer_uninstall() {
+    unset NVM_DIR
+    rm -rf $HOME/.nvm || return $?
+}
