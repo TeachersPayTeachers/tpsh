@@ -33,6 +33,7 @@ function tpsh_pkg_xcode_clt_installer_install() {
         | sed -e 's/^ *//'         \
         | tr -d '\n')
 	softwareupdate -i "$prod" --verbose || return $?
+    local headers="/Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg"
 }
 
 function tpsh_pkg_xcode_clt_installer_is_installed() {

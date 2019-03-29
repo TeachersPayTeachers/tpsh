@@ -24,6 +24,7 @@ __TPSH__LIB__PKGMGRD__PIP__LIB_DIR="${__TPSH__LIB__PKGMGRD__PIP__THIS_DIR}/.."
 #####################################################################
 
 function tpsh_lib_pkgmgrd_pip_add() {
+    local pip_version=""
     local pkg=""
     local verbose=0
     local version=""
@@ -31,6 +32,10 @@ function tpsh_lib_pkgmgrd_pip_add() {
     while [ $# -gt 0 ]; do
         arg="$1"
         case $arg in
+            --pip-version)
+                pip_version="$2"
+                shift
+                ;;
             --verbose)
                 verbose=1
                 ;;
@@ -48,7 +53,7 @@ function tpsh_lib_pkgmgrd_pip_add() {
     done
 
     local pip_output=""
-    pip_output=$(pip install ${pkg} ${version})
+    pip_output=$(pip$pip_version install ${pkg} ${version})
     result=$?
 
     if [ $verbose -eq 1 ]; then
@@ -65,8 +70,8 @@ function tpsh_lib_pkgmgrd_pip_add() {
 
     return $result;
 }
-
 function tpsh_lib_pkgmgrd_pip_del() {
+    local pip_version=""
     local pkg=""
     local verbose=0
     local version=""
@@ -74,6 +79,10 @@ function tpsh_lib_pkgmgrd_pip_del() {
     while [ $# -gt 0 ]; do
         arg="$1"
         case $arg in
+            --pip-version)
+                pip_version="$2"
+                shift
+                ;;
             --verbose)
                 verbose=1
                 ;;
@@ -91,7 +100,7 @@ function tpsh_lib_pkgmgrd_pip_del() {
     done
 
     local pip_output=""
-    pip_output=$(echo y | pip uninstall ${pkg} ${version})
+    pip_output=$(echo y | pip$pip_version uninstall ${pkg})
     result=$?
 
     if [ $verbose -eq 1 ]; then
@@ -110,12 +119,16 @@ function tpsh_lib_pkgmgrd_pip_del() {
 }
 
 function tpsh_lib_pkgmgrd_pip_is_installed() {
+    local pip_version=""
     local pkg=""
     local verbose=0
 
     while [ $# -gt 0 ]; do
         arg="$1"
         case $arg in
+            --pip-version)
+                pip_version="$2"
+                ;;
             --verbose)
                 verbose=1
                 ;;
@@ -131,7 +144,7 @@ function tpsh_lib_pkgmgrd_pip_is_installed() {
     done
 
     local pip_output=""
-    pip_output=$(pip list $pkg 2>&1)
+    pip_output=$(pip$pip_version show $pkg 2>&1)
     result=$?
 
     if [ $result -eq 1 ]; then

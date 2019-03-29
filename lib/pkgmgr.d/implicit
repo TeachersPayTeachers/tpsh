@@ -49,7 +49,7 @@ function tpsh_lib_pkgmgrd_implicit_add() {
         tpsh_lib_log "pkg ${pkg} is implicitly installed when its dependencies are installed"
     fi
 
-    return 1
+    return 0
 }
 
 function tpsh_lib_pkgmgrd_implicit_del() {

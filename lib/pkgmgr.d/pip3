@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+
+#####################################################################
+##### GLOBAL VARIABLES                                          #####
+#####################################################################
+
+__TPSH__LIB__PKGMGRD__PIP3__DEFINED=${__TPSH__LIB__PKGMGRD__PIP3__DEFINED:-0}
+if [ $__TPSH__LIB__PKGMGRD__PIP3__DEFINED -eq 1 ]; then
+    return 0
+else
+    __TPSH__LIB__PKGMGRD__PIP3__DEFINED=1
+fi
+__TPSH__LIB__PKGMGRD__PIP3__THIS_DIR="$(dirname $BASH_SOURCE)"
+__TPSH__LIB__PKGMGRD__PIP3__LIB_DIR="${__TPSH__LIB__PKGMGRD__PIP3__THIS_DIR}/.."
+
+#####################################################################
+##### LOAD LIBRARIES                                            #####
+#####################################################################
+
+. "${__TPSH__LIB__PKGMGRD__PIP3__THIS_DIR}/pip"
+. "${__TPSH__LIB__PKGMGRD__PIP3__LIB_DIR}/logging"
+
+#####################################################################
+##### FUNCTIONS                                                 #####
+#####################################################################
+
+function tpsh_lib_pkgmgrd_pip3_add() {
+    PYENV_ROOT="$HOME/.pyenv"
+    PATH="$PYENV_ROOT/bin:$PATH"
+    local old_python=""
+    if which pyenv > /dev/null; then
+        old_python="$(pyenv version | cut -f1 -d' ' )"
+        local new_python=$(pyenv versions --bare | grep "^3" | sort | tail -n 1)
+        pyenv global $new_python
+    fi
+    tpsh_lib_pkgmgrd_pip_add --pip-version 3 "$@"
+    result=$?
+    if [ ! -z "$old_python" ]; then
+        pyenv global $old_python
+    fi
+    return $result
+}
+
+function tpsh_lib_pkgmgrd_pip3_del() {
+    PYENV_ROOT="$HOME/.pyenv"
+    PATH="$PYENV_ROOT/bin:$PATH"
+    local old_python=""
+    if which pyenv > /dev/null; then
+        old_python="$(pyenv version | cut -f1 -d' ' )"
+        local new_python=$(pyenv versions --bare | grep "^3" | sort | tail -n 1)
+        pyenv global $new_python
+    fi
+    tpsh_lib_pkgmgrd_pip_del --pip-version 3 "$@"
+    result=$?
+    if [ ! -z "$old_python" ]; then
+        pyenv global $old_python
+    fi
+    return $result
+}
+
+function tpsh_lib_pkgmgrd_pip_is_installed() {
+    PYENV_ROOT="$HOME/.pyenv"
+    PATH="$PYENV_ROOT/bin:$PATH"
+    local old_python=""
+    if which pyenv > /dev/null; then
+        old_python="$(pyenv version | cut -f1 -d' ' )"
+        local new_python=$(pyenv versions --bare | grep "^3" | sort | tail -n 1)
+        pyenv global $new_python
+    fi
+    tpsh_lib_pkgmgrd_pip_is_installed --pip-version 3 "$@"
+    result=$?
+    if [ ! -z "$old_python" ]; then
+        pyenv global $old_python
+    fi
+    return $result
+}

@@ -18,6 +18,7 @@ __TPSH__LIB__PKGMGRD__BREW__LIB_DIR="${__TPSH__LIB__PKGMGRD__BREW__THIS_DIR}/.."
 #####################################################################
 
 . "${__TPSH__LIB__PKGMGRD__BREW__LIB_DIR}/logging"
+. "${__TPSH__LIB__PKGMGRD__BREW__LIB_DIR}/pkg"
 
 #####################################################################
 ##### FUNCTIONS                                                 #####

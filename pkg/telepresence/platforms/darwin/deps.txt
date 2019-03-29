@@ -1,2 +1,2 @@
+brew
 osxfuse
-python 3.5.0

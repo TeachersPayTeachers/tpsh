@@ -148,8 +148,9 @@ function tpsh_lib_pkgmgr_install_deps() {
 
     deps="$(tpsh_lib_pkg_deps $args)" || return $?
 
-    printf "$deps" | while read line; do
+    echo "$deps" | while read line; do
         local pkg="$(echo " $line " | cut -f2 -d' ')"
+        [ ! -z "$pkg" ] || continue
         local version="$(echo " $line " | cut -f3 -d' ')"
         if [ -z "$version" ]; then
             version="$(tpsh_lib_pkg_default_version $args)"
@@ -158,7 +159,10 @@ function tpsh_lib_pkgmgr_install_deps() {
         if [ $verbose -eq 1 ]; then
             tpsh_lib_log "installing dependency: pkg $pkg version $version"
         fi
-        tpsh_lib_pkgmgr_add $flags $pkg $version || return $?
+
+        if ! tpsh_lib_pkgmgr_is_installed $flags $pkg $version; then
+            tpsh_lib_pkgmgr_add $flags $pkg $version || return $?
+        fi
     done
 }
 
