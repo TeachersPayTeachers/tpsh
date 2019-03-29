@@ -1,7 +1,7 @@
 [x] finish pkg mgr selection
 [x] finish brew pkgmgr
 [x] add pyenv package
-[ ] add python package
+[x] add python package
 [ ] add awscli package
 [ ] add helm package
 [ ] add kubectl package

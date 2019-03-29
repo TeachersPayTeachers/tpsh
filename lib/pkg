@@ -59,6 +59,29 @@ function tpsh_lib_pkg_deps() {
     fi
 }
 
+function tpsh_lib_pkg_default_version() {
+    local args="$@"
+    local verbose=0
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+        esac
+        shift
+    done
+
+    local pkg_platform_path=""
+    pkg_platform_path="$(tpsh_lib_pkg_platform_path $args)" || return $?
+
+    local default_version_txt="${pkg_platform_path}/default-version.txt"
+    if [ -f "$default_version_txt" ]; then
+        cat $default_version_txt
+    fi
+}
+
 function tpsh_lib_pkg_is_managed() {
     local args="$@"
     local generic_fallback=1

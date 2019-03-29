@@ -144,7 +144,13 @@ function tpsh_lib_pkgmgr_install_deps() {
 
     deps="$(tpsh_lib_pkg_deps $args)" || return $?
 
-    printf "$deps" | while read dep; do
+    printf "$deps" | while read line; do
+        local pkg="$(printf $line | cut -f1 -d' ')"
+        local version="$(printf $line | cut -f2 -d' ')"
+        if [ -z "$version" ]; then
+            version="$(tpsh_lib_pkg_default_version $args)"
+        fi
+
         tpsh_lib_pkgmgr_add $flags $dep || return $?
     done
 }
