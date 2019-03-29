@@ -7,12 +7,12 @@
 [x] add helm package
 [x] add kubectl package
 [x] add telepresence package
-[ ] add dmg pkgmgr
-[ ] add support for system dependency checking
-[ ] add docker package
+[x] add dmg pkgmgr
+[x] add docker package
 [ ] add jq package
 [ ] support for profile installation
 [ ] create dev-tools/ode-user profile
+[ ] add support for system dependency checking
 [ ] test add/uninstall/update
 [ ] test for versions, upgrade
 [ ] add git auth/lib

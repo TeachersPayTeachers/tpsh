@@ -1,0 +1,419 @@
+#!/usr/bin/env bash
+
+#####################################################################
+##### GLOBAL VARIABLES                                          #####
+#####################################################################
+
+__TPSH__LIB__PKGMGRD__DMG__DEFINED=${__TPSH__LIB__PKGMGRD__DMG__DEFINED:-0}
+if [ $__TPSH__LIB__PKGMGRD__DMG__DEFINED -eq 1 ]; then
+    return 0
+else
+    __TPSH__LIB__PKGMGRD__DMG__DEFINED=1
+fi
+__TPSH__LIB__PKGMGRD__DMG__THIS_DIR="$(dirname $BASH_SOURCE)"
+__TPSH__LIB__PKGMGRD__DMG__LIB_DIR="${__TPSH__LIB__PKGMGRD__DMG__THIS_DIR}/.."
+
+#####################################################################
+##### LOAD LIBRARIES                                            #####
+#####################################################################
+
+. "${__TPSH__LIB__PKGMGRD__DMG__LIB_DIR}/logging"
+
+#####################################################################
+##### FUNCTIONS                                                 #####
+#####################################################################
+
+function tpsh_lib_pkgmgrd_dmg_add() {
+    local pkg=""
+    local verbose=0
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+            -*)
+                ;;
+            *)
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$arg"
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    local content=""
+    content="$(tpsh_lib_pkgmgrd_dmg_content $args)" || return $?
+    local content_type=""
+    content_type="$(tpsh_lib_pkgmgrd_dmg_content_type $args)" || return $?
+    local dmg_path=""
+    dmg_path="$(tpsh_lib_pkgmgrd_dmg_download $args)" || return $?
+    local vol_name=""
+    vol_name="$(tpsh_lib_pkgmgrd_dmg_vol $args)" || return $?
+
+    if ! hdiutil attach "$dmg_path"; then
+        [ $verbose -eq 1 ] && tpsh_lib_log_err "failed to attach pkg $pkg dmg $dmg_path with hdiutil"
+        return 1
+    fi
+    [ $verbose -eq 1 ] && tpsh_lib_log "successfully attached pkg $pkg dmg $dmg_path with hdiutil"
+
+    local vol_path="/Volumes/$vol_name"
+    local content_path="$vol_path/$content"
+    local install_prefix="$HOME/Applications"
+
+    if [ "$content_type" = "pkg" ]; then
+        if ! installer -pkg "$content_type_path" -target $HOME/Applications; then
+            [ $verbose -eq 1 ] && tpsh_lib_log_err "failed to install pkg $pkg from $content_type_path"
+            return 1
+        fi
+        [ $verbose -eq 1 ] && tpsh_lib_log "successfully installed pkg $pkg from $content_type_path"
+    elif [ "$content_type" = "app" ]; then
+        [ $verbose -eq 1 ] && tpsh_lib_log "installing $content_path to $install_prefix"
+        if ! cp -R "$content_path" "$install_prefix"; then
+            [ $verbose -eq 1 ] && tpsh_lib_log_err "failed to install pkg $pkg from $content_type_path"
+            return 1
+        fi
+        [ $verbose -eq 1 ] && tpsh_lib_log "successfully installed pkg $pkg from $content_type_path"
+    else
+        [ $verbose -eq 1 ] && tpsh_lib_log_err "pkg $pkg specifies unrecognized dmg content type $content_type"
+    fi
+
+    if ! diskutil unmount "$vol_path"; then
+        [ $verbose -eq 1 ] && tpsh_lib_log_err "failed to unmount pkg $pkg volume $vol_path"
+    fi
+}
+
+function tpsh_lib_pkgmgrd_dmg_del() {
+    local verbose=0
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+        esac
+        shift
+    done
+
+    if [ $verbose -eq 1 ]; then
+        tpsh_lib_log_err "removing a dmg pkg $pkg is not currently supported"
+    fi
+
+    return 1
+}
+
+function tpsh_lib_pkgmgrd_dmg_download() {
+    local args="$@"
+    local pkg=""
+    local verbose=0
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+            -*)
+                ;;
+            *)
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$arg"
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    local url=""
+    url="$(tpsh_lib_pkgmgrd_dmg_url $args)" || return $?
+    local tempfile="$(mktemp)"
+    local http_code="$(curl -fsSL $url -o $tempfile -w '%{http_code}')"
+
+    if [ "$http_code" != "200" ]; then
+        if [ $verbose -eq 1 ]; then
+            tpsh_lib_log_err "failed to download dmg from $url for pkg $pkg: $http_code"
+        fi
+        return 1
+    fi
+
+    echo $tempfile
+}
+
+function tpsh_lib_pkgmgrd_dmg_is_installed() {
+    local pkg=""
+    local verbose=0
+    local version=""
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+            -*)
+                ;;
+            *)
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$arg"
+                elif [ $# -eq 1 ] && [ -z "$version" ]; then
+                    version="$arg"
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    local dmg_output=""
+    dmg_output=$(dmg ls --versions $formula_name 2>&1)
+    result=$?
+
+    if [ $result -eq 1 ]; then
+        if [ $verbose -eq 1 ]; then
+            local dmg_msg_block=""
+            if [ ! -z "$dmg_output" ]; then
+                dmg_msg_block="\n === begin dmg output === \n\n$dmg_output\n\n  === end dmg output === "
+            fi
+            tpsh_lib_log_err "dmg does not have any versions of pkg installed: $pkg $dmg_msg_block"
+        fi
+        return $result
+    fi
+
+    if [ -z "$version" ]; then
+        return $result
+    else
+        printf "$dmg_output" | grep "$version" > /dev/null
+        result=$?
+    fi
+
+    if [ $verbose -eq 1 ]; then
+        local dmg_msg_block=""
+        if [ ! -z "$dmg_output" ]; then
+            dmg_msg_block="\n === begin dmg output === \n\n$dmg_output\n\n  === end dmg output === "
+        fi
+
+        if [ $result -eq 0 ]; then
+            tpsh_lib_log "dmg does not have pkg installed: $pkg $version $dmg_msg_block"
+        else
+            tpsh_lib_log_err "dmg does not have pkg installed: $pkg $version $dmg_msg_block"
+        fi
+    fi
+
+    return $result;
+}
+
+function tpsh_lib_pkgmgrd_dmg_is_installed() {
+    local pkg=""
+    local verbose=0
+    local version=""
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+            -*)
+                ;;
+            *)
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$arg"
+                elif [ $# -eq 1 ] && [ -z "$version" ]; then
+                    version="$arg"
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    local dmg_output=""
+    dmg_output=$(dmg ls --versions $formula_name 2>&1)
+    result=$?
+
+    if [ $result -eq 1 ]; then
+        if [ $verbose -eq 1 ]; then
+            local dmg_msg_block=""
+            if [ ! -z "$dmg_output" ]; then
+                dmg_msg_block="\n === begin dmg output === \n\n$dmg_output\n\n  === end dmg output === "
+            fi
+            tpsh_lib_log_err "dmg does not have any versions of pkg installed: $pkg $dmg_msg_block"
+        fi
+        return $result
+    fi
+
+    if [ -z "$version" ]; then
+        return $result
+    else
+        printf "$dmg_output" | grep "$version" > /dev/null
+        result=$?
+    fi
+
+    if [ $verbose -eq 1 ]; then
+        local dmg_msg_block=""
+        if [ ! -z "$dmg_output" ]; then
+            dmg_msg_block="\n === begin dmg output === \n\n$dmg_output\n\n  === end dmg output === "
+        fi
+
+        if [ $result -eq 0 ]; then
+            tpsh_lib_log "dmg does not have pkg installed: $pkg $version $dmg_msg_block"
+        else
+            tpsh_lib_log_err "dmg does not have pkg installed: $pkg $version $dmg_msg_block"
+        fi
+    fi
+
+    return $result;
+}
+
+function tpsh_lib_pkgmgrd_dmg_content() {
+    local pkg=""
+    local verbose=0
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+            -*)
+                ;;
+            *)
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$arg"
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    local content_type=""
+    local pkgmgr_config_path=""
+    pkgmgr_config_path="$(tpsh_lib_pkg_pkgmgr_config_path --pkgmgr dmg $args)"
+    if [ $? -eq 0 ]; then
+        content_path="$pkgmgr_config_path/content.txt"
+        if [ ! -f "$content_path" ]; then
+            if [ $verbose -eq 1 ]; then
+                tpsh_lib_log_err "pkg $pkg does define a dmg content file at: $content_path"
+            fi
+            return 1
+        fi
+        cat $content_path
+    else
+        return 1
+    fi
+}
+
+function tpsh_lib_pkgmgrd_dmg_content_type() {
+    local pkg=""
+    local verbose=0
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+            -*)
+                ;;
+            *)
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$arg"
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    local content_type_path=""
+    local pkgmgr_config_path=""
+    pkgmgr_config_path="$(tpsh_lib_pkg_pkgmgr_config_path --pkgmgr dmg $args)"
+    if [ $? -eq 0 ]; then
+        content_type_path="$pkgmgr_config_path/content-type.txt"
+        if [ ! -f "$content_type_path" ]; then
+            if [ $verbose -eq 1 ]; then
+                tpsh_lib_log_err "pkg $pkg does define a dmg content type file at: $content_type_path"
+            fi
+            return 1
+        fi
+        cat $content_type_path
+    else
+        return 1
+    fi
+}
+
+function tpsh_lib_pkgmgrd_dmg_url() {
+    local pkg=""
+    local verbose=0
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+            -*)
+                ;;
+            *)
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$arg"
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    local url_path=""
+    local pkgmgr_config_path=""
+    pkgmgr_config_path="$(tpsh_lib_pkg_pkgmgr_config_path --pkgmgr dmg $args)"
+    if [ $? -eq 0 ]; then
+        url_path="$pkgmgr_config_path/url.txt"
+        if [ ! -f "$url_path" ]; then
+            if [ $verbose -eq 1 ]; then
+                tpsh_lib_log_err "pkg $pkg does define a dmg URL at: $url_path"
+            fi
+            return 1
+        fi
+        cat $url_path
+    else
+        return 1
+    fi
+}
+
+function tpsh_lib_pkgmgrd_dmg_vol() {
+    local pkg=""
+    local verbose=0
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+            -*)
+                ;;
+            *)
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$arg"
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    local vol_name_file=""
+    local pkgmgr_config_path=""
+    pkgmgr_config_path="$(tpsh_lib_pkg_pkgmgr_config_path --pkgmgr dmg $args)"
+    if [ $? -eq 0 ]; then
+        vol_name_file="$pkgmgr_config_path/vol.txt"
+        if [ ! -f "$vol_name_file" ]; then
+            if [ $verbose -eq 1 ]; then
+                tpsh_lib_log_err "pkg $pkg does define a dmg Volume name at: $vol_name_file"
+            fi
+            return 1
+        fi
+        cat $vol_name_file
+    else
+        return 1
+    fi
+}
