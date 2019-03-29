@@ -30,6 +30,41 @@ function tpsh_lib_pkg_clean_name() {
     echo $pkg | tr '-' '_'
 }
 
+function tpsh_lib_pkg_pkgmgr_config_path() {
+    local args="$@"
+    local pkg=""
+    local pkgmgr=""
+    local verbose=0
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --pkgmgr)
+                pkgmgr="$2"
+                shift
+                ;;
+            --verbose)
+                verbose=1
+                ;;
+            -*)
+                ;;
+            *)
+                if [ $# -eq 1 ]; then
+                    pkg="$1"
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    pkg_platform_path="$(tpsh_lib_pkg_platform_path $args)"
+    local pkgmgr_config_path="${pkg_platform_path}/pkgmgrs/${pkgmgr}"
+
+    [ -d "${pkgmgr_config_path}" ] || return 1
+
+    echo $pkgmgr_config_path
+}
+
 function tpsh_lib_pkg_deps() {
     local args="$@"
     local verbose=0
@@ -153,6 +188,9 @@ function tpsh_lib_pkg_path() {
     while [ $# -gt 0 ]; do
         arg="$1"
         case $arg in
+            --pkgmgr)
+                shift
+                ;;
             --no-generic-fallback)
                 generic_fallback=0
                 ;;
@@ -194,6 +232,9 @@ function tpsh_lib_pkg_platform_path() {
     while [ $# -gt 0 ]; do
         arg="$1"
         case $arg in
+            --pkgmgr)
+                shift
+                ;;
             --platform)
                 platform="$2"
                 shift

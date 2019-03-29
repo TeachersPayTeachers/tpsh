@@ -47,13 +47,21 @@ function tpsh_lib_pkgmgrd_brew_add() {
         shift
     done
 
+    tpsh_lib_pkgmgrd_brew_tap $args
+
     local brew_output=""
+    local formula_name="$(tpsh_lib_pkgmgrd_brew_formula_name $args)"
     local version_string=""
     if [ ! -z "$version" ]; then
         version_string="@$version"
     fi
 
-    brew_output=$(brew install ${pkg}${version_string})
+    if [ $verbose -eq 1 ]; then
+        tpsh_lib_log "updating brew"
+    fi
+    brew update 2> /dev/null
+
+    brew_output=$(brew install ${formula_name}${version_string})
     result=$?
 
     if [ $verbose -eq 1 ]; then
@@ -62,9 +70,9 @@ function tpsh_lib_pkgmgrd_brew_add() {
             brew_msg_block=""
         fi
         if [ $result -eq 0 ]; then
-            tpsh_lib_log "successfully installed ${pkg}${version_string} with brew $brew_msg_block"
+            tpsh_lib_log "successfully installed ${pkg} ${version} with brew $brew_msg_block"
         else
-            tpsh_lib_log_err "failed to install ${pkg}${version_string} with brew $brew_msg_block"
+            tpsh_lib_log_err "failed to install ${pkg} ${version} with brew $brew_msg_block"
         fi
     fi
 
@@ -96,13 +104,16 @@ function tpsh_lib_pkgmgrd_brew_del() {
     done
 
     local brew_output=""
+    local formula_name="$(tpsh_lib_pkgmgrd_brew_formula_name $args)"
     local version_string=""
     if [ ! -z "$version" ]; then
         version_string="@$version"
     fi
 
-    brew_output=$(brew uninstall ${pkg}${version_string})
+    brew_output=$(brew uninstall ${formula_name}${version_string})
     result=$?
+
+    [ $result -eq 0 ] && $(tpsh_lib_pkgmgrd_brew_untap $args)
 
     if [ $verbose -eq 1 ]; then
         local brew_msg_block="\n === begin brew output === \n\n$brew_output\n\n  === end brew output === "
@@ -110,13 +121,46 @@ function tpsh_lib_pkgmgrd_brew_del() {
             brew_msg_block=""
         fi
         if [ $result -eq 0 ]; then
-            tpsh_lib_log "successfully uninstalled ${pkg}${version_string} with brew $brew_msg_block"
+            tpsh_lib_log "successfully uninstalled ${pkg} ${version} with brew $brew_msg_block"
         else
-            tpsh_lib_log_err "failed to uninstall ${pkg}${version_string} with brew $brew_msg_block"
+            tpsh_lib_log_err "failed to uninstall ${pkg} ${version} with brew $brew_msg_block"
         fi
     fi
 
     return $result;
+}
+
+function tpsh_lib_pkgmgrd_brew_formula_name() {
+    local pkg=""
+    local verbose=0
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+            -*)
+                ;;
+            *)
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$arg"
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    local formula_name="$pkg"
+    local pkgmgr_config_path=""
+    pkgmgr_config_path="$(tpsh_lib_pkg_pkgmgr_config_path --pkgmgr brew $args)"
+    if [ $? -eq 0 ]; then
+        if [ -f "$pkgmgr_config_path/formula-name.txt" ]; then
+            formula_name="$(cat ${pkgmgr_config_path}/formula-name.txt)"
+        fi
+    fi
+
+    echo $formula_name
 }
 
 function tpsh_lib_pkgmgrd_brew_is_installed() {
@@ -144,7 +188,8 @@ function tpsh_lib_pkgmgrd_brew_is_installed() {
     done
 
     local brew_output=""
-    brew_output=$(brew ls --versions $pkg 2>&1)
+    local formula_name="$(tpsh_lib_pkgmgrd_brew_formula_name $args)"
+    brew_output=$(brew ls --versions $formula_name 2>&1)
     result=$?
 
     if [ $result -eq 1 ]; then
@@ -180,3 +225,70 @@ function tpsh_lib_pkgmgrd_brew_is_installed() {
 
     return $result;
 }
+
+function tpsh_lib_pkgmgrd_brew_tap() {
+    local pkg=""
+    local verbose=0
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+            -*)
+                ;;
+            *)
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$arg"
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    local formula_name="$pkg"
+    local pkgmgr_config_path=""
+    pkgmgr_config_path="$(tpsh_lib_pkg_pkgmgr_config_path --pkgmgr brew $args)"
+    if [ $? -eq 0 ]; then
+        if [ -f "$pkgmgr_config_path/tap.txt" ]; then
+            brew tap $(cat "$pkgmgr_config_path/tap.txt")
+        fi
+    fi
+
+    echo $formula_name
+}
+
+function tpsh_lib_pkgmgrd_brew_untap() {
+    local pkg=""
+    local verbose=0
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+            -*)
+                ;;
+            *)
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$arg"
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    local formula_name="$pkg"
+    local pkgmgr_config_path=""
+    pkgmgr_config_path="$(tpsh_lib_pkg_pkgmgr_config_path --pkgmgr brew $args)"
+    if [ $? -eq 0 ]; then
+        if [ -f "$pkgmgr_config_path/tap.txt" ]; then
+            brew untap $(cat "$pkgmgr_config_path/tap.txt")
+        fi
+    fi
+
+    echo $formula_name
+}
+

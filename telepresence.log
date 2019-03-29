@@ -1,0 +1,74 @@
+   0.0 TEL | Telepresence 0.97 launched at Fri Mar 29 02:37:53 2019
+   0.0 TEL |   /usr/local/bin/telepresence
+   0.0 TEL | Platform: darwin
+   0.0 TEL | Python 3.7.3 (default, Mar 27 2019, 09:23:32)
+   0.0 TEL | [Clang 9.0.0 (clang-900.0.39.2)]
+   0.0 TEL | [1] Running: uname -a
+   0.0   1 | Darwin benilde.local 16.7.0 Darwin Kernel Version 16.7.0: Tue Jan 30 11:27:06 PST 2018; root:xnu-3789.73.11~1/RELEASE_X86_64 x86_64
+   0.0 TEL | BEGIN SPAN main.py:40(main)
+   0.0 TEL | BEGIN SPAN startup.py:74(__init__)
+   0.0 TEL | Found kubectl -> /usr/local/bin/kubectl
+   0.0 TEL | [2] Capturing: kubectl version --short
+   0.6 TEL | [3] Capturing: kubectl config current-context
+   0.7 TEL | [4] Capturing: kubectl config view -o json
+   0.7 TEL | [5] Capturing: kubectl --context kubernetes-eks-poc get ns default
+   2.0 TEL | [5] captured in 1.27 secs.
+   2.0 TEL | Command: kubectl 1.14.0
+   2.0 TEL | Context: kubernetes-eks-poc, namespace: default, version: 1.10.13-eks-g484b8
+   2.0 >>> | Warning: kubectl 1.14.0 may not work correctly with cluster version 1.10.13-eks-g484b8 due to the version discrepancy. See https://kubernetes.io/docs/setup/version-skew-policy/ for more information.
+   2.0 >>> | 
+   2.0 TEL | END SPAN startup.py:74(__init__)    2.0s
+   2.0 TEL | Found ssh -> /usr/bin/ssh
+   2.0 TEL | [6] Capturing: ssh -V
+   2.0 TEL | Found bash -> /bin/bash
+   2.0 TEL | Found sshuttle-telepresence -> /usr/local/Cellar/telepresence/0.97/libexec/sshuttle-telepresence
+   2.0 TEL | Found pfctl -> /sbin/pfctl
+   2.0 TEL | Found sudo -> /usr/bin/sudo
+   2.0 TEL | [7] Running: sudo -n echo -n
+   2.1 >>> | Starting proxy with method 'vpn-tcp', which has the following limitations: All processes are affected, only one telepresence can run per machine, and you can't use other VPNs. You may need to add cloud hosts and headless services with --also-proxy. For a full list of method limitations see https://telepresence.io/reference/methods.html
+   2.1 TEL | Found sshfs -> /usr/local/bin/sshfs
+   2.1 TEL | Found umount -> /sbin/umount
+   2.1 >>> | Volumes are rooted at $TELEPRESENCE_ROOT. See https://telepresence.io/howto/volumes.html for details.
+   2.1 TEL | [8] Capturing: kubectl --context kubernetes-eks-poc --namespace default get pods telepresence-connectivity-check --ignore-not-found
+   2.6 TEL | Scout info: {'latest_version': '0.97', 'application': 'telepresence', 'notices': []}
+   2.6 TEL | BEGIN SPAN deployment.py:61(create_new_deployment)
+   2.6 >>> | Starting network proxy to cluster using new Deployment telepresence-1553841473-440823-355
+   2.6 TEL | [9] Capturing: kubectl --context kubernetes-eks-poc --namespace default delete --ignore-not-found svc,deploy --selector=telepresence=f3d91f191646468483617d8a6a20aea1
+   2.9 TEL | [10] Capturing: kubectl --context kubernetes-eks-poc --namespace default run --restart=Always --limits=cpu=100m,memory=256Mi --requests=cpu=25m,memory=64Mi telepresence-1553841473-440823-355 --image=datawire/telepresence-k8s:0.97 --labels=telepresence=f3d91f191646468483617d8a6a20aea1
+   3.2  10 | kubectl run --generator=deployment/apps.v1 is DEPRECATED and will be removed in a future version. Use kubectl run --generator=run-pod/v1 or kubectl create instead.
+   3.2  10 | deployment.apps/telepresence-1553841473-440823-355 created
+   3.2 TEL | END SPAN deployment.py:61(create_new_deployment)    0.6s
+   3.2 TEL | BEGIN SPAN remote.py:154(get_remote_info)
+   3.2 TEL | BEGIN SPAN remote.py:78(get_deployment_json)
+   3.2 TEL | [11] Capturing: kubectl --context kubernetes-eks-poc --namespace default get deployment -o json --export --selector=telepresence=f3d91f191646468483617d8a6a20aea1
+   3.5 TEL | END SPAN remote.py:78(get_deployment_json)    0.2s
+   5.5 TEL | CRASH: Expecting value: line 1 column 1 (char 0)
+   5.5 TEL | Traceback (most recent call last):
+   5.5 TEL |   File "/usr/local/bin/telepresence/telepresence/cli.py", line 130, in crash_reporting
+   5.5 TEL |     yield
+   5.5 TEL |   File "/usr/local/bin/telepresence/telepresence/main.py", line 60, in main
+   5.5 TEL |     remote_info = start_proxy(runner)
+   5.5 TEL |   File "/usr/local/bin/telepresence/telepresence/proxy/__init__.py", line 104, in start_proxy
+   5.5 TEL |     run_id=run_id,
+   5.5 TEL |   File "/usr/local/bin/telepresence/telepresence/proxy/remote.py", line 156, in get_remote_info
+   5.5 TEL |     runner, deployment_name, deployment_type, run_id=run_id
+   5.5 TEL |   File "/usr/local/bin/telepresence/telepresence/proxy/remote.py", line 101, in get_deployment_json
+   5.5 TEL |     stderr=STDOUT
+   5.5 TEL |   File "/usr/local/Cellar/python/3.7.3/Frameworks/Python.framework/Versions/3.7/lib/python3.7/json/__init__.py", line 348, in loads
+   5.5 TEL |     return _default_decoder.decode(s)
+   5.5 TEL |   File "/usr/local/Cellar/python/3.7.3/Frameworks/Python.framework/Versions/3.7/lib/python3.7/json/decoder.py", line 337, in decode
+   5.5 TEL |     obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+   5.5 TEL |   File "/usr/local/Cellar/python/3.7.3/Frameworks/Python.framework/Versions/3.7/lib/python3.7/json/decoder.py", line 355, in raw_decode
+   5.5 TEL |     raise JSONDecodeError("Expecting value", s, err.value) from None
+   5.5 TEL | json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+   5.5 TEL | (calling crash reporter...)
+   8.6 >>> | Exit cleanup in progress
+   8.6 TEL | (Cleanup) Delete new deployment
+   8.6 >>> | Cleaning up Deployment telepresence-1553841473-440823-355
+   8.6 TEL | [12] Capturing: kubectl --context kubernetes-eks-poc --namespace default delete --ignore-not-found svc,deploy --selector=telepresence=f3d91f191646468483617d8a6a20aea1
+   9.0 TEL | (Cleanup) Kill sudo privileges holder
+   9.0 TEL | (Cleanup) Stop time tracking
+   9.0 TEL | END SPAN main.py:40(main)    9.0s
+   9.0 TEL | (Cleanup) Remove temporary directory
+   9.0 TEL | (Cleanup) Save caches
+   9.1 TEL | (sudo privileges holder thread exiting)

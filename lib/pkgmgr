@@ -127,10 +127,14 @@ function tpsh_lib_pkgmgr_install_deps() {
     local deps=""
     local flags=""
     local pkg=""
+    local verbose=0
 
     while [ $# -gt 0 ]; do
         arg="$1"
         case $arg in
+            --verbose)
+                verbose=1
+                ;;
             -*)
                 flags="$flags $arg"
                 ;;
@@ -145,13 +149,16 @@ function tpsh_lib_pkgmgr_install_deps() {
     deps="$(tpsh_lib_pkg_deps $args)" || return $?
 
     printf "$deps" | while read line; do
-        local pkg="$(printf $line | cut -f1 -d' ')"
-        local version="$(printf $line | cut -f2 -d' ')"
+        local pkg="$(echo " $line " | cut -f2 -d' ')"
+        local version="$(echo " $line " | cut -f3 -d' ')"
         if [ -z "$version" ]; then
             version="$(tpsh_lib_pkg_default_version $args)"
         fi
 
-        tpsh_lib_pkgmgr_add $flags $dep || return $?
+        if [ $verbose -eq 1 ]; then
+            tpsh_lib_log "installing dependency: pkg $pkg version $version"
+        fi
+        tpsh_lib_pkgmgr_add $flags $pkg $version || return $?
     done
 }
 
