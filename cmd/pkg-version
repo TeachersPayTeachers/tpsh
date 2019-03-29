@@ -4,21 +4,21 @@
 ##### GLOBAL VARIABLES                                          #####
 #####################################################################
 
-__TPSH__CMD__PKG_IS_INSTALLED__THIS_DIR="$(dirname $0)"
-__TPSH__CMD__PKG_IS_INSTALLED__LIB_DIR="${__TPSH__CMD__PKG_IS_INSTALLED__THIS_DIR}/../lib"
+__TPSH__CMD__PKG_VERSION__THIS_DIR="$(dirname $0)"
+__TPSH__CMD__PKG_VERSION__LIB_DIR="${__TPSH__CMD__PKG_VERSION__THIS_DIR}/../lib"
 
 #####################################################################
 ##### LOAD LIBRARIES                                            #####
 #####################################################################
 
-. "${__TPSH__CMD__PKG_IS_INSTALLED__LIB_DIR}/pkgmgr"
-. "${__TPSH__CMD__PKG_IS_INSTALLED__LIB_DIR}/logging"
+. "${__TPSH__CMD__PKG_VERSION__LIB_DIR}/pkgmgr"
+. "${__TPSH__CMD__PKG_VERSION__LIB_DIR}/logging"
 
 #####################################################################
 ##### FUNCTIONS                                                 #####
 #####################################################################
 
-function tpsh_cmd_pkg_is_installed() {
+function tpsh_cmd_pkg_version() {
     local args="$@"
     local pkg=""
 
@@ -36,13 +36,11 @@ function tpsh_cmd_pkg_is_installed() {
         shift
     done
 
-    tpsh_lib_pkgmgr_is_installed "$args"
+    tpsh_lib_pkgmgr_version "$args"
     result=$?
 
-    if [ $result -eq 0 ]; then
-        tpsh_lib_log "pkg $pkg is installed"
-    else
-        tpsh_lib_log "pkg $pkg is not installed"
+    if [ $result -ne 0 ]; then
+        tpsh_lib_log_err "pkg $pkg version is unknown"
     fi
 }
 
@@ -50,4 +48,4 @@ function tpsh_cmd_pkg_is_installed() {
 ##### MAIN PROGRAM                                              #####
 #####################################################################
 
-tpsh_cmd_pkg_is_installed $@
+tpsh_cmd_pkg_version $@

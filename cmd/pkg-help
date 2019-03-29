@@ -17,6 +17,7 @@ USAGE: tpsh pkg [<command> [args]]
 COMMANDS
   add <pkg> [version]
   is-installed <pkg> [version]
+  version <pkg>
 EOF
 }
 

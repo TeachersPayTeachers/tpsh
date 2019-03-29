@@ -293,3 +293,59 @@ function tpsh_lib_pkgmgrd_brew_untap() {
     echo $formula_name
 }
 
+function tpsh_lib_pkgmgrd_brew_version() {
+    local pkg=""
+    local verbose=0
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+            -*)
+                ;;
+            *)
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$arg"
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    local brew_output=""
+    local formula_name="$(tpsh_lib_pkgmgrd_brew_formula_name $args)"
+    brew_output=$(brew ls --versions $formula_name 2>&1)
+    result=$?
+
+    if [ $result -eq 1 ]; then
+        if [ $verbose -eq 1 ]; then
+            local brew_msg_block=""
+            if [ ! -z "$brew_output" ]; then
+                brew_msg_block="\n === begin brew output === \n\n$brew_output\n\n  === end brew output === "
+            fi
+            tpsh_lib_log_err "brew does not have any versions of pkg installed: $pkg $brew_msg_block"
+        fi
+        return $result
+    fi
+
+    local version=""
+    version=$(printf "$brew_output" | cut -d' ' -f2)
+    result=$?
+
+    if [ $verbose -eq 1 ]; then
+        local brew_msg_block=""
+        if [ ! -z "$brew_output" ]; then
+            brew_msg_block="\n === begin brew output === \n\n$brew_output\n\n  === end brew output === "
+        fi
+
+        if [ $result -eq 0 ]; then
+            echo $version
+        else
+            tpsh_lib_log_err "brew does not have pkg installed: $pkg $version $brew_msg_block"
+        fi
+    fi
+
+    return $result;
+}

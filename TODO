@@ -10,12 +10,12 @@
 [x] add dmg pkgmgr
 [x] add docker package
 [x] basic pkg-based presets
+[ ] test for versions, upgrade
 [ ] add jq package
 [ ] support for profile installation
 [ ] create dev-tools/ode-user profile
 [ ] add support for system dependency checking
 [ ] test add/uninstall/update
-[ ] test for versions, upgrade
 [ ] add git auth/lib
 [ ] create repo cmd
 [ ] add charts repo
