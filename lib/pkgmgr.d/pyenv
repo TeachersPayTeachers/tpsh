@@ -1,0 +1,179 @@
+#!/usr/bin/env bash
+
+#####################################################################
+##### GLOBAL VARIABLES                                          #####
+#####################################################################
+
+__TPSH__LIB__PKGMGRD__PYENV__DEFINED=${__TPSH__LIB__PKGMGRD__PYENV__DEFINED:-0}
+if [ $__TPSH__LIB__PKGMGRD__PYENV__DEFINED -eq 1 ]; then
+    return 0
+else
+    __TPSH__LIB__PKGMGRD__PYENV__DEFINED=1
+fi
+__TPSH__LIB__PKGMGRD__PYENV__THIS_DIR="$(dirname $BASH_SOURCE)"
+__TPSH__LIB__PKGMGRD__PYENV__LIB_DIR="${__TPSH__LIB__PKGMGRD__PYENV__THIS_DIR}/.."
+
+#####################################################################
+##### LOAD LIBRARIES                                            #####
+#####################################################################
+
+. "${__TPSH__LIB__PKGMGRD__PYENV__LIB_DIR}/logging"
+
+#####################################################################
+##### FUNCTIONS                                                 #####
+#####################################################################
+
+function tpsh_lib_pkgmgrd_pyenv_add() {
+    local pkg=""
+    local verbose=0
+    local version=""
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+            -*)
+                ;;
+            *)
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$arg"
+                elif [ $# -eq 1 ] && [ -z "$version" ]; then
+                    version="$arg"
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    local pyenv_output=""
+    pyenv_output=$(tpsh_lib_pkgmgrd_pyenv_cmd install ${version})
+    result=$?
+
+    if [ $verbose -eq 1 ]; then
+        local pyenv_msg_block="\n === begin pyenv output === \n\n$pyenv_output\n\n  === end pyenv output === "
+        if [ ! -z "$pyenv_output" ]; then
+            pyenv_msg_block=""
+        fi
+        if [ $result -eq 0 ]; then
+            tpsh_lib_log "Successfully installed ${pkg} ${version} with pyenv $pyenv_msg_block"
+        else
+            tpsh_lib_log_err "Failed to install ${pkg} ${version} with pyenv $pyenv_msg_block"
+        fi
+    fi
+
+    return $result;
+}
+
+function tpsh_lib_pkgmgrd_pyenv_cmd() {
+    PYENV_ROOT="$HOME/.pyenv"
+    PATH="$PYENV_ROOT/bin:$PATH"
+    pyenv $@
+    return $?
+}
+
+function tpsh_lib_pkgmgrd_pyenv_del() {
+    local pkg=""
+    local verbose=0
+    local version=""
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+            -*)
+                ;;
+            *)
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$arg"
+                elif [ $# -eq 1 ] && [ -z "$version" ]; then
+                    version="$arg"
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    local pyenv_output=""
+    pyenv_output=$(echo y | tpsh_lib_pkgmgrd_pyenv_cmd uninstall ${version})
+    result=$?
+
+    if [ $verbose -eq 1 ]; then
+        local pyenv_msg_block="\n === begin pyenv output === \n\n$pyenv_output\n\n  === end pyenv output === "
+        if [ ! -z "$pyenv_output" ]; then
+            pyenv_msg_block=""
+        fi
+        if [ $result -eq 0 ]; then
+            tpsh_lib_log "successfully uninstalled ${pkg} ${version} with pyenv $pyenv_msg_block"
+        else
+            tpsh_lib_log_err "failed to uninstall ${pkg} ${version} with pyenv $pyenv_msg_block"
+        fi
+    fi
+
+    return $result;
+}
+
+function tpsh_lib_pkgmgrd_pyenv_is_installed() {
+    local pkg=""
+    local verbose=0
+    local version=""
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+            -*)
+                ;;
+            *)
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$arg"
+                elif [ $# -eq 1 ] && [ -z "$version" ]; then
+                    version="$arg"
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    local pyenv_output=""
+    pyenv_output=$(tpsh_lib_pkgmgrd_pyenv_cmd versions --bare | grep $version)
+    result=$?
+
+    if [ $result -eq 1 ]; then
+        if [ $verbose -eq 1 ]; then
+            local pyenv_msg_block=""
+            if [ ! -z "$pyenv_output" ]; then
+                pyenv_msg_block="\n === begin pyenv output === \n\n$pyenv_output\n\n  === end pyenv output === "
+            fi
+            tpsh_lib_log_err "pyenv does not have any versions of pkg installed: $pkg $pyenv_msg_block"
+        fi
+        return $result
+    fi
+
+    if [ -z "$version" ]; then
+        return $result
+    else
+        printf "$pyenv_output" | grep "$version" > /dev/null
+        result=$?
+    fi
+
+    if [ $verbose -eq 1 ]; then
+        local pyenv_msg_block=""
+        if [ ! -z "$pyenv_output" ]; then
+            pyenv_msg_block="\n === begin pyenv output === \n\n$pyenv_output\n\n  === end pyenv output === "
+        fi
+
+        if [ $result -eq 0 ]; then
+            tpsh_lib_log "pyenv has pkg installed: $pkg $version $pyenv_msg_block"
+        else
+            tpsh_lib_log_err "pyenv does not have pkg installed: $pkg $version $pyenv_msg_block"
+        fi
+    fi
+
+    return $result;
+}
