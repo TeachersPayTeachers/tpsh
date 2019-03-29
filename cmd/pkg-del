@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+#####################################################################
+##### GLOBAL VARIABLES                                          #####
+#####################################################################
+
+__TPSH__CMD__PKG_DEL__THIS_DIR="$(dirname $0)"
+__TPSH__CMD__PKG_DEL__LIB_DIR="${__TPSH__CMD__PKG_DEL__THIS_DIR}/../lib"
+
+#####################################################################
+##### LOAD LIBRARIES                                            #####
+#####################################################################
+
+. "${__TPSH__CMD__PKG_DEL__LIB_DIR}/logging"
+. "${__TPSH__CMD__PKG_DEL__LIB_DIR}/pkgmgr"
+
+#####################################################################
+##### FUNCTIONS                                                 #####
+#####################################################################
+
+function tpsh_cmd_pkg_del() {
+    local args="$@"
+    local pkg=""
+    local verbose=0
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+            *)
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$arg"
+                fi
+        esac
+        shift
+    done
+
+    if ! tpsh_lib_pkgmgr_is_installed $args; then
+        tpsh_lib_pkgmgr_del $args || return $?
+    else
+        if [ $verbose -eq 1 ]; then
+            tpsh_lib_log "pkg $pkg is already installed"
+        fi
+    fi
+}
+
+#####################################################################
+##### MAIN PROGRAM                                              #####
+#####################################################################
+
+tpsh_cmd_pkg_del "$@"

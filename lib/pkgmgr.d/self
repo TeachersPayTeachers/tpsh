@@ -67,6 +67,49 @@ function tpsh_lib_pkgmgrd_self_add() {
     return $result;
 }
 
+function tpsh_lib_pkgmgrd_self_del() {
+    tpsh_lib_pkgmgrd_self_pkgmr_source $@ || return $?
+
+    local args="$@"
+    local pkg=""
+    local verbose=0
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            --verbose)
+                verbose=1
+                ;;
+            -*)
+                ;;
+            *)
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$arg"
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    local pkg_clean_name="$(tpsh_lib_pkg_clean_name $pkg)"
+    local pkgmgr_cmd="tpsh_pkg_${pkg_clean_name}_installer_uninstall"
+
+    local self_output=""
+    self_output=$($pkgmgr_cmd $args)
+    result=$?
+
+    if [ $verbose -eq 1 ]; then
+        self_msg_block="\n === begin pkg $pkg self-installer output === \n$self_output\n === end pkg $pkg self-installer output ==="
+        if [ $result -eq 0 ]; then
+            tpsh_lib_log "successfully uninstalled ${pkg} $self_msg_block"
+        else
+            tpsh_lib_log_err "failed to uninstall ${pkg} $self_msg_block"
+        fi
+    fi
+
+    return $result;
+}
+
 function tpsh_lib_pkgmgrd_self_is_installed() {
     tpsh_lib_pkgmgrd_self_pkgmr_source $@ || return $?
 

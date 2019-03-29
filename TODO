@@ -1,5 +1,6 @@
-[ ] finish pkg mgr selection
-[ ] finish brew pkgmgr
+[x] finish pkg mgr selection
+[x] finish brew pkgmgr
+[x] add pyenv package
 [ ] add python package
 [ ] add awscli package
 [ ] add helm package

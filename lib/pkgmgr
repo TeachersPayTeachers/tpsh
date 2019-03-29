@@ -94,6 +94,34 @@ function tpsh_lib_pkgmgr_current() {
     return 1
 }
 
+function tpsh_lib_pkgmgr_del() {
+    local args="$@"
+    local pkg=""
+
+    tpsh_lib_pkgmgr_install_deps $args || return $?
+
+    while [ $# -gt 0 ]; do
+        arg="$1"
+        case $arg in
+            -*)
+                ;;
+            *)
+                if [ $# -le 2 ] && [ -z "$pkg" ]; then
+                    pkg="$arg"
+                fi
+        esac
+        shift
+    done
+
+    tpsh_lib_pkgmgr_is_supported $args || return $?
+
+    local pkgmgr=""
+    pkgmgr="$(tpsh_lib_pkgmgr_select_preferred $args)" || return $?
+
+    local pkgmgrd_cmd="tpsh_lib_pkgmgrd_${pkgmgr}_del"
+    $pkgmgrd_cmd $args || return $?
+}
+
 function tpsh_lib_pkgmgr_install_deps() {
     local args="$@"
     local deps=""

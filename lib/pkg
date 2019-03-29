@@ -125,16 +125,11 @@ function tpsh_lib_pkg_path() {
     local args="$@"
     local generic_fallback=1
     local pkg=""
-    local platform="$(tpsh_lib_platform_name)"
     local verbose=0
 
     while [ $# -gt 0 ]; do
         arg="$1"
         case $arg in
-            --platform)
-                platform="$2"
-                shift
-                ;;
             --no-generic-fallback)
                 generic_fallback=0
                 ;;
@@ -170,7 +165,7 @@ function tpsh_lib_pkg_path() {
 
 function tpsh_lib_pkg_platform_path() {
     local args="$@"
-    local platform="$(tpsh_lib_platform_name)"
+    local platform=""
     local verbose=0
 
     while [ $# -gt 0 ]; do
@@ -190,16 +185,28 @@ function tpsh_lib_pkg_platform_path() {
     local pkg_path=""
     pkg_path="$(tpsh_lib_pkg_path $args)" || return $?
 
-    local pkg_platform_path="${pkg_path}/platforms/${platform}"
+    local pkg_platform_path=""
+
+    if [ -z "$platform" ]; then
+        platform=$(tpsh_lib_platform_name)
+    fi
+
+    pkg_platform_path="${pkg_path}/platforms/${platform}"
     if [ -d "$pkg_platform_path" ]; then
         echo $pkg_platform_path
         return 0
-    else
-        if [ $verbose -eq 1 ]; then
-            tpsh_lib_log_err "pkg does not define platform metadata at: $pkg_platform_path"
-        fi
-        return 1
     fi
+
+    pkg_platform_path="${pkg_path}/platforms/generic"
+    if [ -d "$pkg_platform_path" ]; then
+        echo $pkg_platform_path
+        return 0
+    fi
+
+    if [ $verbose -eq 1 ]; then
+        tpsh_lib_log_err "pkg does not define platform metadata at: $pkg_platform_path"
+    fi
+    return 1
 }
 
 function tpsh_lib_pkg_supported_pkgmgrs() {

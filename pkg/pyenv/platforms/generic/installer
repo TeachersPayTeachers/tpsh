@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+#####################################################################
+##### GLOBAL VARIABLES                                          #####
+#####################################################################
+
+__TPSH__PKG__PYENV__INSTALLER__DEFINED=${__TPSH__PKG__PYENV__INSTALLER__DEFINED:-0}
+if [ $__TPSH__PKG__PYENV__INSTALLER__DEFINED -eq 1 ]; then
+    return 0
+else
+    __TPSH__PKG__PYENV__INSTALLER__DEFINED=1
+fi
+
+#####################################################################
+##### FUNCTIONS                                                 #####
+#####################################################################
+
+function tpsh_pkg_pyenv_installer_install() {
+    curl https://pyenv.run | bash
+    return $?
+}
+
+function tpsh_pkg_pyenv_installer_is_installed() {
+    which pyenv > /dev/null || return $?
+}
+
+function tpsh_pkg_pyenv_installer_update() {
+    pyenv update || return $?
+}
+
+function tpsh_pkg_pyenv_installer_uninstall() {
+    rm -rf $HOME/.pyenv || return $?
+}
