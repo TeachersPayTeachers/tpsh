@@ -10,6 +10,7 @@
 [ ] add dmg pkgmgr
 [ ] add support for system dependency checking
 [ ] add docker package
+[ ] add jq package
 [ ] support for profile installation
 [ ] create dev-tools/ode-user profile
 [ ] test add/uninstall/update
