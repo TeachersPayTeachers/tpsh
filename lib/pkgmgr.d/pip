@@ -4,26 +4,26 @@
 ##### GLOBAL VARIABLES                                          #####
 #####################################################################
 
-__TPSH__LIB__PKGMGRD__BREW__DEFINED=${__TPSH__LIB__PKGMGRD__BREW__DEFINED:-0}
-if [ $__TPSH__LIB__PKGMGRD__BREW__DEFINED -eq 1 ]; then
+__TPSH__LIB__PKGMGRD__PIP__DEFINED=${__TPSH__LIB__PKGMGRD__PIP__DEFINED:-0}
+if [ $__TPSH__LIB__PKGMGRD__PIP__DEFINED -eq 1 ]; then
     return 0
 else
-    __TPSH__LIB__PKGMGRD__BREW__DEFINED=1
+    __TPSH__LIB__PKGMGRD__PIP__DEFINED=1
 fi
-__TPSH__LIB__PKGMGRD__BREW__THIS_DIR="$(dirname $BASH_SOURCE)"
-__TPSH__LIB__PKGMGRD__BREW__LIB_DIR="${__TPSH__LIB__PKGMGRD__BREW__THIS_DIR}/.."
+__TPSH__LIB__PKGMGRD__PIP__THIS_DIR="$(dirname $BASH_SOURCE)"
+__TPSH__LIB__PKGMGRD__PIP__LIB_DIR="${__TPSH__LIB__PKGMGRD__PIP__THIS_DIR}/.."
 
 #####################################################################
 ##### LOAD LIBRARIES                                            #####
 #####################################################################
 
-. "${__TPSH__LIB__PKGMGRD__BREW__LIB_DIR}/logging"
+. "${__TPSH__LIB__PKGMGRD__PIP__LIB_DIR}/logging"
 
 #####################################################################
 ##### FUNCTIONS                                                 #####
 #####################################################################
 
-function tpsh_lib_pkgmgrd_brew_add() {
+function tpsh_lib_pkgmgrd_pip_add() {
     local pkg=""
     local verbose=0
     local version=""
@@ -47,31 +47,26 @@ function tpsh_lib_pkgmgrd_brew_add() {
         shift
     done
 
-    local brew_output=""
-    local version_string=""
-    if [ ! -z "$version" ]; then
-        version_string="@$version"
-    fi
-
-    brew_output=$(brew install ${pkg}${version_string})
+    local pip_output=""
+    pip_output=$(pip install ${pkg} ${version})
     result=$?
 
     if [ $verbose -eq 1 ]; then
-        local brew_msg_block="\n === begin brew output === \n\n$brew_output\n\n  === end brew output === "
-        if [ ! -z "$brew_output" ]; then
-            brew_msg_block=""
+        local pip_msg_block="\n === begin pip output === \n\n$pip_output\n\n  === end pip output === "
+        if [ ! -z "$pip_output" ]; then
+            pip_msg_block=""
         fi
         if [ $result -eq 0 ]; then
-            tpsh_lib_log "successfully installed ${pkg}${version_string} with brew $brew_msg_block"
+            tpsh_lib_log "successfully installed ${pkg} ${version} with pip $pip_msg_block"
         else
-            tpsh_lib_log_err "failed to install ${pkg}${version_string} with brew $brew_msg_block"
+            tpsh_lib_log_err "failed to install ${pkg} ${version} with pip $pip_msg_block"
         fi
     fi
 
     return $result;
 }
 
-function tpsh_lib_pkgmgrd_brew_del() {
+function tpsh_lib_pkgmgrd_pip_del() {
     local pkg=""
     local verbose=0
     local version=""
@@ -95,34 +90,28 @@ function tpsh_lib_pkgmgrd_brew_del() {
         shift
     done
 
-    local brew_output=""
-    local version_string=""
-    if [ ! -z "$version" ]; then
-        version_string="@$version"
-    fi
-
-    brew_output=$(brew uninstall ${pkg}${version_string})
+    local pip_output=""
+    pip_output=$(echo y | pip uninstall ${pkg} ${version})
     result=$?
 
     if [ $verbose -eq 1 ]; then
-        local brew_msg_block="\n === begin brew output === \n\n$brew_output\n\n  === end brew output === "
-        if [ ! -z "$brew_output" ]; then
-            brew_msg_block=""
+        local pip_msg_block="\n === begin pip output === \n\n$pip_output\n\n  === end pip output === "
+        if [ ! -z "$pip_output" ]; then
+            pip_msg_block=""
         fi
         if [ $result -eq 0 ]; then
-            tpsh_lib_log "successfully uninstalled ${pkg}${version_string} with brew $brew_msg_block"
+            tpsh_lib_log "successfully uninstalled ${pkg} ${version} with pip $pip_msg_block"
         else
-            tpsh_lib_log_err "failed to uninstall ${pkg}${version_string} with brew $brew_msg_block"
+            tpsh_lib_log_err "failed to uninstall ${pkg} ${version} with pip $pip_msg_block"
         fi
     fi
 
     return $result;
 }
 
-function tpsh_lib_pkgmgrd_brew_is_installed() {
+function tpsh_lib_pkgmgrd_pip_is_installed() {
     local pkg=""
     local verbose=0
-    local version=""
 
     while [ $# -gt 0 ]; do
         arg="$1"
@@ -135,25 +124,23 @@ function tpsh_lib_pkgmgrd_brew_is_installed() {
             *)
                 if [ $# -le 2 ] && [ -z "$pkg" ]; then
                     pkg="$arg"
-                elif [ $# -eq 1 ] && [ -z "$version" ]; then
-                    version="$arg"
                 fi
                 ;;
         esac
         shift
     done
 
-    local brew_output=""
-    brew_output=$(brew ls --versions $pkg 2>&1)
+    local pip_output=""
+    pip_output=$(pip list $pkg 2>&1)
     result=$?
 
     if [ $result -eq 1 ]; then
         if [ $verbose -eq 1 ]; then
-            local brew_msg_block=""
-            if [ ! -z "$brew_output" ]; then
-                brew_msg_block="\n === begin brew output === \n\n$brew_output\n\n  === end brew output === "
+            local pip_msg_block=""
+            if [ ! -z "$pip_output" ]; then
+                pip_msg_block="\n === begin pip output === \n\n$pip_output\n\n  === end pip output === "
             fi
-            tpsh_lib_log_err "brew does not have any versions of pkg installed: $pkg $brew_msg_block"
+            tpsh_lib_log_err "pip does not have any versions of pkg installed: $pkg $pip_msg_block"
         fi
         return $result
     fi
@@ -161,20 +148,20 @@ function tpsh_lib_pkgmgrd_brew_is_installed() {
     if [ -z "$version" ]; then
         return $result
     else
-        printf "$brew_output" | grep "$version" > /dev/null
+        printf "$pip_output" | grep "$version" > /dev/null
         result=$?
     fi
 
     if [ $verbose -eq 1 ]; then
-        local brew_msg_block=""
-        if [ ! -z "$brew_output" ]; then
-            brew_msg_block="\n === begin brew output === \n\n$brew_output\n\n  === end brew output === "
+        local pip_msg_block=""
+        if [ ! -z "$pip_output" ]; then
+            pip_msg_block="\n === begin pip output === \n\n$pip_output\n\n  === end pip output === "
         fi
 
         if [ $result -eq 0 ]; then
-            tpsh_lib_log "brew does not have pkg installed: $pkg $version $brew_msg_block"
+            tpsh_lib_log "pip does not have pkg installed: $pkg $version $pip_msg_block"
         else
-            tpsh_lib_log_err "brew does not have pkg installed: $pkg $version $brew_msg_block"
+            tpsh_lib_log_err "pip does not have pkg installed: $pkg $version $pip_msg_block"
         fi
     fi
 
