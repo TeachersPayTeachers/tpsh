@@ -37,11 +37,11 @@ function tpsh_cmd_pkg_del() {
         shift
     done
 
-    if ! tpsh_lib_pkgmgr_is_installed $args; then
+    if tpsh_lib_pkgmgr_is_installed $args; then
         tpsh_lib_pkgmgr_del $args || return $?
     else
         if [ $verbose -eq 1 ]; then
-            tpsh_lib_log "pkg $pkg is already installed"
+            tpsh_lib_log "pkg $pkg is not installed"
         fi
     fi
 }

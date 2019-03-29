@@ -98,7 +98,7 @@ function tpsh_lib_pkgmgr_del() {
     local args="$@"
     local pkg=""
 
-    tpsh_lib_pkgmgr_install_deps $args || return $?
+    #tpsh_lib_pkgmgr_uninstall_used_by $args || return $?
 
     while [ $# -gt 0 ]; do
         arg="$1"
