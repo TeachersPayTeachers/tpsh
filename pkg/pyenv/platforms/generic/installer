@@ -17,14 +17,20 @@ fi
 
 function tpsh_pkg_pyenv_installer_install() {
     curl https://pyenv.run | bash
+    PYENV_ROOT="$HOME/.pyenv"
+    PATH="$PYENV_ROOT/bin:$PATH"
     return $?
 }
 
 function tpsh_pkg_pyenv_installer_is_installed() {
+    PYENV_ROOT="$HOME/.pyenv"
+    PATH="$PYENV_ROOT/bin:$PATH"
     which pyenv > /dev/null || return $?
 }
 
 function tpsh_pkg_pyenv_installer_update() {
+    PYENV_ROOT="$HOME/.pyenv"
+    PATH="$PYENV_ROOT/bin:$PATH"
     pyenv update || return $?
 }
 
